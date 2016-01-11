@@ -20,9 +20,9 @@ public class MethodDescription {
 		this.name = name;
 	}
 
-	public static MethodDescription of(String clazz, String name, String MCPDescription) {
-		//MCP style - (Lxv;IIILanw;Ljava/util/List;Llq;)V
-		return new MethodDescription(clazz, name, MCPDescription.substring(MCPDescription.lastIndexOf(')') + 1), MCPDescription.substring(1, MCPDescription.indexOf(')')));
+	public static MethodDescription of(String clazz, String name, String JVMDescription) {
+		//JVM style - (Lxv;IIILanw;Ljava/util/List;Llq;)V
+		return new MethodDescription(clazz, name, JVMDescription.substring(JVMDescription.lastIndexOf(')') + 1), JVMDescription.substring(1, JVMDescription.indexOf(')')));
 	}
 
 	public static MethodDescription of(Method m) {
@@ -53,10 +53,10 @@ public class MethodDescription {
 
 	@Override
 	public String toString() {
-		return name + getMCPName();
+		return getJVMName();
 	}
 
-	String getMCPName() {
+	public String getJVMName() {
 		return '(' + parameters + ')' + returnType;
 	}
 
