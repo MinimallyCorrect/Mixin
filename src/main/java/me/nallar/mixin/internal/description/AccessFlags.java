@@ -2,7 +2,7 @@ package me.nallar.mixin.internal.description;
 
 import me.nallar.mixin.internal.util.JVMUtil;
 
-public class Flags {
+public class AccessFlags {
 	public static final int ACC_PUBLIC = 0x0001; // class, field, method
 	public static final int ACC_PRIVATE = 0x0002; // class, field, method
 	public static final int ACC_PROTECTED = 0x0004; // class, field, method
@@ -24,7 +24,7 @@ public class Flags {
 	public static final int ACC_MANDATED = 0x8000; // parameter
 	public final int access;
 
-	public Flags(int access) {
+	public AccessFlags(int access) {
 		this.access = access;
 	}
 
@@ -35,7 +35,7 @@ public class Flags {
 
 	@Override
 	public boolean equals(Object o) {
-		return o == this || (o instanceof Flags && ((Flags) o).access == access);
+		return o == this || (o instanceof AccessFlags && ((AccessFlags) o).access == access);
 	}
 
 	@Override

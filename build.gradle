@@ -1,7 +1,6 @@
 plugins {
 	id 'java'
 	id 'maven'
-	id "me.tatarka.retrolambda" version "3.2.4"
 }
 project.version = '1.0-SNAPSHOT'
 project.group = 'me.nallar'
@@ -36,14 +35,10 @@ configurations {
 }
 
 dependencies {
+	testCompile "junit:junit:4.12"
 	provided 'org.projectlombok:lombok:1.16.4'
 	provided 'org.ow2.asm:asm-debug-all:5.0.4'
 	provided 'com.github.javaparser:javaparser-core:2.3.0'
-}
-
-retrolambda {
-	// Allow running tests with JDK 8
-	isOnJava8 = false
 }
 
 compileJava {

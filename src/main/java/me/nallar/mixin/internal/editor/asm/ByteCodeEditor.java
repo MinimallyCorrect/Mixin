@@ -1,12 +1,12 @@
 package me.nallar.mixin.internal.editor.asm;
 
-import me.nallar.mixin.internal.description.FieldInfo;
-import me.nallar.mixin.internal.description.MethodDescription;
+import me.nallar.mixin.internal.description.*;
 import me.nallar.mixin.internal.editor.JavaEditor;
 import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
+
+import java.util.*;
 
 public class ByteCodeEditor implements JavaEditor {
 	private final ClassNode node;
@@ -17,33 +17,70 @@ public class ByteCodeEditor implements JavaEditor {
 	}
 
 	@Override
-	public void addStub(MethodDescription description) {
-		MethodNode method = new MethodNode();
-		method.access = Opcodes.ACC_PUBLIC;
+	public void add(MethodInfo method) {
+		MethodNode node = new MethodNode();
+		MethodInfo info = MethodNodeInfo.wrap(node);
 	}
 
 	@Override
-	public void addStub(FieldInfo field) {
-
-	}
-
-	@Override
-	public void makePublic(FieldInfo field) {
+	public void add(FieldInfo field) {
 
 	}
 
 	@Override
-	public void makePublic(MethodDescription method) {
-
-	}
-
-	@Override
-	public void getMethods(MethodDescription method) {
-
+	public List<MethodInfo> getMethods() {
+		return null;
 	}
 
 	@Override
 	public void getFields(FieldInfo fields) {
 
+	}
+
+	static class MethodNodeInfo implements MethodInfo {
+		private final MethodNode node;
+
+		private MethodNodeInfo(MethodNode node) {
+			this.node = node;
+		}
+
+		@Override
+		public AccessFlags getAccessFlags() {
+			return new AccessFlags(node.access);
+		}
+
+		@Override
+		public String getName() {
+			return node.name;
+		}
+
+		@Override
+		public Type getReturnType() {
+			return new Descriptor(node.desc, node.signature).getReturnType();
+		}
+
+		@Override
+		public List<Parameter> getParameters() {
+			return null;
+		}
+
+		@Override
+		public void setAccessFlags(AccessFlags accessFlags) {
+
+		}
+
+		@Override
+		public void setName(String name) {
+
+		}
+
+		@Override
+		public void setReturnType(Type returnType) {
+
+		}
+
+		public static MethodInfo wrap(MethodNode node) {
+			return new MethodNodeInfo(node);
+		}
 	}
 }

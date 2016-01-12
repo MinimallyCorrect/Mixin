@@ -1,12 +1,12 @@
 package me.nallar.mixin.internal.util;
 
-import me.nallar.mixin.internal.description.Flags;
+import me.nallar.mixin.internal.description.AccessFlags;
 
 import java.lang.reflect.*;
 import java.util.*;
 
 public class JVMUtil {
-	public static String getJVMName(Class<?> clazz) {
+	public static String getDescriptor(Class<?> clazz) {
 		if (clazz.isPrimitive()) {
 			if (clazz.equals(Boolean.TYPE)) {
 				return "Z";
@@ -25,62 +25,6 @@ public class JVMUtil {
 			}
 		}
 		return 'L' + clazz.getCanonicalName() + ';';
-	}
-
-	public static String getParameterList(Method m) {
-		List<Class<?>> parameterClasses = new ArrayList<>(Arrays.asList(m.getParameterTypes()));
-		StringBuilder parameters = new StringBuilder();
-		for (Class<?> clazz : parameterClasses) {
-			parameters.append(getJVMName(clazz));
-		}
-		return parameters.toString();
-	}
-
-	public static String accessIntToString(int access) {
-		StringBuilder result = new StringBuilder();
-
-		if (hasFlag(access, Flags.ACC_PUBLIC))
-			result.append(" public");
-
-		if (hasFlag(access, Flags.ACC_PRIVATE))
-			result.append(" private");
-
-		if (hasFlag(access, Flags.ACC_PROTECTED))
-			result.append(" protected");
-
-		if (hasFlag(access, Flags.ACC_STATIC))
-			result.append(" static");
-
-		if (hasFlag(access, Flags.ACC_FINAL))
-			result.append(" final");
-
-		return result.toString().trim();
-	}
-
-	public static int accessStringToInt(String access) {
-		int a = 0;
-		for (String accessPart : Splitter.on(' ').split(access)) {
-			switch (accessPart) {
-				case "public":
-					a |= Flags.ACC_PUBLIC;
-					break;
-				case "protected":
-					a |= Flags.ACC_PROTECTED;
-					break;
-				case "private":
-					a |= Flags.ACC_PRIVATE;
-					break;
-				case "static":
-					a |= Flags.ACC_STATIC;
-					break;
-				case "synthetic":
-					a |= Flags.ACC_SYNTHETIC;
-					break;
-				default:
-					throw new RuntimeException("Unknown access string " + access);
-			}
-		}
-		return a;
 	}
 
 	public static String primitiveTypeToDescriptor(String primitive) {
@@ -108,6 +52,62 @@ public class JVMUtil {
 		throw new RuntimeException("Invalid primitive type: " + primitive);
 	}
 
+	public static String getParameterList(Method m) {
+		List<Class<?>> parameterClasses = new ArrayList<>(Arrays.asList(m.getParameterTypes()));
+		StringBuilder parameters = new StringBuilder();
+		for (Class<?> clazz : parameterClasses) {
+			parameters.append(getDescriptor(clazz));
+		}
+		return parameters.toString();
+	}
+
+	public static String accessIntToString(int access) {
+		StringBuilder result = new StringBuilder();
+
+		if (hasFlag(access, AccessFlags.ACC_PUBLIC))
+			result.append(" public");
+
+		if (hasFlag(access, AccessFlags.ACC_PRIVATE))
+			result.append(" private");
+
+		if (hasFlag(access, AccessFlags.ACC_PROTECTED))
+			result.append(" protected");
+
+		if (hasFlag(access, AccessFlags.ACC_STATIC))
+			result.append(" static");
+
+		if (hasFlag(access, AccessFlags.ACC_FINAL))
+			result.append(" final");
+
+		return result.toString().trim();
+	}
+
+	public static int accessStringToInt(String access) {
+		int a = 0;
+		for (String accessPart : Splitter.on(' ').split(access)) {
+			switch (accessPart) {
+				case "public":
+					a |= AccessFlags.ACC_PUBLIC;
+					break;
+				case "protected":
+					a |= AccessFlags.ACC_PROTECTED;
+					break;
+				case "private":
+					a |= AccessFlags.ACC_PRIVATE;
+					break;
+				case "static":
+					a |= AccessFlags.ACC_STATIC;
+					break;
+				case "synthetic":
+					a |= AccessFlags.ACC_SYNTHETIC;
+					break;
+				default:
+					throw new RuntimeException("Unknown access string " + access);
+			}
+		}
+		return a;
+	}
+
 	public static boolean hasFlag(int access, int flag) {
 		return (access & flag) != 0;
 	}
@@ -123,22 +123,22 @@ public class JVMUtil {
 	public static int makeAccess(int access, boolean makePublic) {
 		access = makeAtLeastProtected(access);
 		if (makePublic) {
-			access = replaceFlag(access, Flags.ACC_PROTECTED, Flags.ACC_PUBLIC);
+			access = replaceFlag(access, AccessFlags.ACC_PROTECTED, AccessFlags.ACC_PUBLIC);
 		}
 		return access;
 	}
 
 	public static int makeAtLeastProtected(int access) {
-		if (hasFlag(access, Flags.ACC_PUBLIC) || hasFlag(access, Flags.ACC_PROTECTED)) {
+		if (hasFlag(access, AccessFlags.ACC_PUBLIC) || hasFlag(access, AccessFlags.ACC_PROTECTED)) {
 			// already protected or public
 			return access;
 		}
-		if (hasFlag(access, Flags.ACC_PRIVATE)) {
+		if (hasFlag(access, AccessFlags.ACC_PRIVATE)) {
 			// private -> protected
-			return replaceFlag(access, Flags.ACC_PRIVATE, Flags.ACC_PROTECTED);
+			return replaceFlag(access, AccessFlags.ACC_PRIVATE, AccessFlags.ACC_PROTECTED);
 		}
 		// not public, protected or private so must be package-local
 		// change to public - protected doesn't include package-local.
-		return access | Flags.ACC_PUBLIC;
+		return access | AccessFlags.ACC_PUBLIC;
 	}
 }

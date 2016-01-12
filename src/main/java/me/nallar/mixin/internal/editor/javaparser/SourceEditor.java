@@ -3,8 +3,10 @@ package me.nallar.mixin.internal.editor.javaparser;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import me.nallar.mixin.internal.description.FieldInfo;
-import me.nallar.mixin.internal.description.MethodDescription;
+import me.nallar.mixin.internal.description.MethodInfo;
 import me.nallar.mixin.internal.editor.JavaEditor;
+
+import java.util.*;
 
 public class SourceEditor implements JavaEditor {
 	private final TypeDeclaration type;
@@ -14,29 +16,19 @@ public class SourceEditor implements JavaEditor {
 	}
 
 	@Override
-	public void addStub(MethodDescription description) {
+	public void add(MethodInfo description) {
 		MethodDeclaration methodDeclaration = new MethodDeclaration();
-		methodDeclaration.setModifiers();
+		methodDeclaration.setModifiers(0);
 	}
 
 	@Override
-	public void addStub(FieldInfo field) {
-
-	}
-
-	@Override
-	public void makePublic(FieldInfo field) {
+	public void add(FieldInfo field) {
 
 	}
 
 	@Override
-	public void makePublic(MethodDescription method) {
-
-	}
-
-	@Override
-	public void getMethods(MethodDescription method) {
-
+	public List<MethodInfo> getMethods() {
+		return null;
 	}
 
 	@Override

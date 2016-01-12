@@ -1,18 +1,16 @@
 package me.nallar.mixin.internal.editor;
 
 import me.nallar.mixin.internal.description.FieldInfo;
-import me.nallar.mixin.internal.description.MethodDescription;
+import me.nallar.mixin.internal.description.MethodInfo;
+
+import java.util.*;
 
 public interface JavaEditor {
-	void addStub(MethodDescription description);
+	void add(MethodInfo method);
 
-	void addStub(FieldInfo field);
+	void add(FieldInfo field);
 
-	void makePublic(FieldInfo field);
-
-	void makePublic(MethodDescription method);
-
-	void getMethods(MethodDescription method);
+	List<MethodInfo> getMethods();
 
 	void getFields(FieldInfo fields);
 }
