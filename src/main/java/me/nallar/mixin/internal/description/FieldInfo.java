@@ -5,13 +5,9 @@ import me.nallar.mixin.internal.description.impl.FieldInfoImplementation;
 public interface FieldInfo extends DeclarationInfo {
 	AccessFlags getAccessFlags();
 
-	String getName();
-
 	Type getType();
 
 	void setAccessFlags(AccessFlags accessFlags);
-
-	void setName(String name);
 
 	void setType(Type type);
 
