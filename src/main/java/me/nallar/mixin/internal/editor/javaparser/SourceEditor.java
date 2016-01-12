@@ -2,17 +2,28 @@ package me.nallar.mixin.internal.editor.javaparser;
 
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
+import me.nallar.mixin.internal.description.AccessFlags;
 import me.nallar.mixin.internal.description.FieldInfo;
 import me.nallar.mixin.internal.description.MethodInfo;
-import me.nallar.mixin.internal.editor.JavaEditor;
+import me.nallar.mixin.internal.editor.ClassEditor;
 
 import java.util.*;
 
-public class SourceEditor implements JavaEditor {
+public class SourceEditor implements ClassEditor {
 	private final TypeDeclaration type;
 
 	public SourceEditor(TypeDeclaration type) {
 		this.type = type;
+	}
+
+	@Override
+	public AccessFlags getAccessFlags() {
+		return new AccessFlags(type.getModifiers());
+	}
+
+	@Override
+	public void setAccessFlags(AccessFlags accessFlags) {
+		type.setModifiers(accessFlags.access);
 	}
 
 	@Override
@@ -23,16 +34,16 @@ public class SourceEditor implements JavaEditor {
 
 	@Override
 	public void add(FieldInfo field) {
-
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public List<MethodInfo> getMethods() {
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void getFields(FieldInfo fields) {
-
+	public List<FieldInfo> getFields() {
+		throw new UnsupportedOperationException();
 	}
 }

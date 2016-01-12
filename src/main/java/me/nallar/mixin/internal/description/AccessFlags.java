@@ -42,4 +42,16 @@ public class AccessFlags {
 	public int hashCode() {
 		return access;
 	}
+
+	public AccessFlags makeAccessible(boolean needsPublic) {
+		return new AccessFlags(JVMUtil.makeAccess(access, needsPublic));
+	}
+
+	public AccessFlags with(int flag) {
+		return new AccessFlags(access | flag);
+	}
+
+	public AccessFlags without(int flag) {
+		return new AccessFlags(access & ~flag);
+	}
 }
