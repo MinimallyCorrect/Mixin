@@ -4,6 +4,9 @@ import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseException;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.TypeDeclaration;
+import lombok.val;
+import me.nallar.mixin.internal.description.AccessFlags;
+import me.nallar.mixin.internal.description.DeclarationInfo;
 import me.nallar.mixin.internal.description.FieldInfo;
 import me.nallar.mixin.internal.description.MethodInfo;
 import me.nallar.mixin.internal.util.JVMUtil;
@@ -21,6 +24,25 @@ import java.util.*;
 
 public class Patcher {
 	private static final Map<String, PatchInfo> patchClasses = new HashMap<>();
+
+	public void patch(ClassEditor editor, String name) {
+		PatchInfo patchInfo = patchForClass(name);
+		if (patchInfo == null)
+			return;
+
+		editor.accessFlags((f) -> f.without(AccessFlags.ACC_FINAL).makeAccessible(true));
+
+		// TODO patchInfo.exposeInners - add methods for inner classes
+		val declarations = new ArrayList<DeclarationInfo>();
+		declarations.addAll(editor.getFields());
+		declarations.addAll(editor.getMethods());
+
+		declarations.forEach((d) -> d.accessFlags((f) -> f.without(AccessFlags.ACC_FINAL).makeAccessible(patchInfo.makePublic)));
+
+		patchInfo.fields.forEach(editor::add);
+
+		patchInfo.methods.forEach(editor::add);
+	}
 
 	public byte[] patchCode(byte[] inputCode, String inputClassName) {
 		PatchInfo patchInfo = patchForClass(inputClassName);

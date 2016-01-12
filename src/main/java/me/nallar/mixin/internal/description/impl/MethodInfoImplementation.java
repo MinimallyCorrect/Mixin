@@ -1,6 +1,10 @@
-package me.nallar.mixin.internal.description;
+package me.nallar.mixin.internal.description.impl;
 
 import lombok.Data;
+import me.nallar.mixin.internal.description.AccessFlags;
+import me.nallar.mixin.internal.description.MethodInfo;
+import me.nallar.mixin.internal.description.Parameter;
+import me.nallar.mixin.internal.description.Type;
 
 import java.util.*;
 

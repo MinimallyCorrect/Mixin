@@ -1,14 +1,14 @@
 package me.nallar.mixin.internal.editor.asm;
 
 import me.nallar.mixin.internal.description.*;
-import me.nallar.mixin.internal.editor.JavaEditor;
+import me.nallar.mixin.internal.editor.ClassEditor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.util.*;
 
-public class ByteCodeEditor implements JavaEditor {
+public class ByteCodeEditor implements ClassEditor {
 	private final ClassNode node;
 
 	public ByteCodeEditor(ClassReader reader) {
@@ -17,24 +17,36 @@ public class ByteCodeEditor implements JavaEditor {
 	}
 
 	@Override
+	public AccessFlags getAccessFlags() {
+		return new AccessFlags(node.access);
+	}
+
+	@Override
+	public void setAccessFlags(AccessFlags accessFlags) {
+		node.access = accessFlags.access;
+	}
+
+	@Override
 	public void add(MethodInfo method) {
 		MethodNode node = new MethodNode();
 		MethodInfo info = MethodNodeInfo.wrap(node);
+		info.setAll(method);
+		this.node.methods.add(node);
 	}
 
 	@Override
 	public void add(FieldInfo field) {
-
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public List<MethodInfo> getMethods() {
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void getFields(FieldInfo fields) {
-
+	public List<FieldInfo> getFields() {
+		throw new UnsupportedOperationException();
 	}
 
 	static class MethodNodeInfo implements MethodInfo {

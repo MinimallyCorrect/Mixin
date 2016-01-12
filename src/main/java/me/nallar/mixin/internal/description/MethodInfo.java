@@ -1,14 +1,14 @@
 package me.nallar.mixin.internal.description;
 
+import me.nallar.mixin.internal.description.impl.MethodInfoImplementation;
+
 import java.util.*;
 
-public interface MethodInfo {
-	AccessFlags getAccessFlags();
+public interface MethodInfo extends DeclarationInfo {
 	String getName();
 	Type getReturnType();
 	List<Parameter> getParameters();
 
-	void setAccessFlags(AccessFlags accessFlags);
 	void setName(String name);
 	void setReturnType(Type returnType);
 
