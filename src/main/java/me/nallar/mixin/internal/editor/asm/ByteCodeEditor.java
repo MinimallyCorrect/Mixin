@@ -50,9 +50,11 @@ public class ByteCodeEditor implements ClassEditor {
 
 	static class MethodNodeInfo implements MethodInfo {
 		private final MethodNode node;
+		private MethodDescriptor descriptor;
 
 		private MethodNodeInfo(MethodNode node) {
 			this.node = node;
+			descriptor = new MethodDescriptor(node.desc, node.signature);
 		}
 
 		@Override
@@ -88,14 +90,14 @@ public class ByteCodeEditor implements ClassEditor {
 
 		@Override
 		public void setParameters(List<Parameter> parameters) {
-
+			descriptor = descriptor.withParameters(parameters);
+			descriptor.saveTo(node);
 		}
 
 		@Override
 		public void setReturnType(Type returnType) {
-			val descriptor = new MethodDescriptor(node.desc, node.signature).withReturnType(returnType);
-			node.desc = descriptor.getDescriptor();
-			node.signature = descriptor.getSignature();
+			descriptor = descriptor.withReturnType(returnType);
+			descriptor.saveTo(node);
 		}
 
 		public static MethodInfo wrap(MethodNode node) {
