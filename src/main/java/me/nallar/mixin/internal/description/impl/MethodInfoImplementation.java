@@ -1,10 +1,7 @@
 package me.nallar.mixin.internal.description.impl;
 
 import lombok.Data;
-import me.nallar.mixin.internal.description.AccessFlags;
-import me.nallar.mixin.internal.description.MethodInfo;
-import me.nallar.mixin.internal.description.Parameter;
-import me.nallar.mixin.internal.description.Type;
+import me.nallar.mixin.internal.description.*;
 
 import java.util.*;
 
@@ -13,7 +10,7 @@ public class MethodInfoImplementation implements MethodInfo {
 	public AccessFlags accessFlags;
 	public String name;
 	public Type returnType;
-	public final List<Parameter> parameters;
+	public List<Parameter> parameters;
 
 	public MethodInfoImplementation(AccessFlags accessFlags, String name, Type returnType, Parameter... parameters) {
 		this(accessFlags, name, returnType, Arrays.asList(parameters));
@@ -24,5 +21,9 @@ public class MethodInfoImplementation implements MethodInfo {
 		this.name = name;
 		this.returnType = returnType;
 		this.parameters = new ArrayList<>(parameters);
+	}
+
+	public List<Parameter> getParameters() {
+		return Collections.unmodifiableList(parameters);
 	}
 }

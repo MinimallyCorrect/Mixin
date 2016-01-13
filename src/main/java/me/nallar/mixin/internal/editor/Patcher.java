@@ -4,84 +4,74 @@ import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseException;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.TypeDeclaration;
-import lombok.val;
-import me.nallar.mixin.internal.description.AccessFlags;
-import me.nallar.mixin.internal.description.DeclarationInfo;
-import me.nallar.mixin.internal.description.FieldInfo;
-import me.nallar.mixin.internal.description.MethodInfo;
+import me.nallar.mixin.internal.description.*;
+import me.nallar.mixin.internal.editor.asm.ByteCodeEditor;
 import me.nallar.mixin.internal.util.JVMUtil;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FieldNode;
-import org.objectweb.asm.tree.InnerClassNode;
-import org.objectweb.asm.tree.MethodNode;
 
 import java.io.*;
 import java.nio.charset.*;
 import java.util.*;
 
 public class Patcher {
-	private static final Map<String, PatchInfo> patchClasses = new HashMap<>();
+	private final Map<String, PatchInfo> patchClasses = new HashMap<>();
 
-	public void patch(ClassEditor editor, String name) {
-		PatchInfo patchInfo = patchForClass(name);
+	public String patch(String source, String name) {
+		PatchInfo patchInfo = getPatchInfo(name);
 		if (patchInfo == null)
-			return;
+			return source;
 
+		CompilationUnit cu;
+		try {
+			cu = JavaParser.parse(new ByteArrayInputStream(source.getBytes(Charset.forName("UTF-8"))), "UTF-8");
+		} catch (ParseException e) {
+			throw new RuntimeException(e);
+		}
+
+		String packageName = cu.getPackage().getName().getName();
+		for (TypeDeclaration typeDeclaration : cu.getTypes()) {
+			String shortClassName = typeDeclaration.getName();
+		}
+
+		return cu.toString();
+	}
+
+	public byte[] patch(byte[] bytes, String name) {
+		PatchInfo patchInfo = getPatchInfo(name);
+		if (patchInfo == null)
+			return bytes;
+
+		ClassNode node = new ClassNode();
+		ClassReader reader = new ClassReader(bytes);
+		reader.accept(node, ClassReader.EXPAND_FRAMES);
+
+		patch(new ByteCodeEditor(node), name, patchInfo);
+
+		ClassWriter classWriter = new ClassWriter(reader, 0);
+		node.accept(classWriter);
+		return classWriter.toByteArray();
+	}
+
+	public void patch(ClassEditor editor, String name, PatchInfo patchInfo) {
 		editor.accessFlags((f) -> f.without(AccessFlags.ACC_FINAL).makeAccessible(true));
 
 		// TODO patchInfo.exposeInners - add methods for inner classes
-		val declarations = new ArrayList<DeclarationInfo>();
-		declarations.addAll(editor.getFields());
-		declarations.addAll(editor.getMethods());
-
-		declarations.forEach((d) -> d.accessFlags((f) -> f.without(AccessFlags.ACC_FINAL).makeAccessible(patchInfo.makePublic)));
+		editor.getFields().forEach(d -> modifyDeclarations(d, patchInfo));
+		editor.getMethods().forEach(d -> modifyDeclarations(d, patchInfo));
 
 		patchInfo.fields.forEach(editor::add);
 
 		patchInfo.methods.forEach(editor::add);
 	}
 
-	public byte[] patchCode(byte[] inputCode, String inputClassName) {
-		PatchInfo patchInfo = patchForClass(inputClassName);
-		if (patchInfo == null) {
-			return inputCode;
-		}
-
-		ClassReader classReader = new ClassReader(inputCode);
-		ClassNode classNode = new ClassNode();
-		classReader.accept(classNode, ClassReader.EXPAND_FRAMES);
-
-		classNode.access = classNode.access & ~Opcodes.ACC_FINAL;
-		classNode.access = JVMUtil.makeAccess(classNode.access, true);
-		if (patchInfo.exposeInners) {
-			for (InnerClassNode innerClassNode : classNode.innerClasses) {
-				innerClassNode.access = JVMUtil.makeAccess(innerClassNode.access, true);
-			}
-		}
-		for (FieldNode fieldNode : classNode.fields) {
-			fieldNode.access = fieldNode.access & ~Opcodes.ACC_FINAL;
-			fieldNode.access = JVMUtil.makeAccess(fieldNode.access, patchInfo.makePublic);
-		}
-		for (MethodNode methodNode : classNode.methods) {
-			methodNode.access = methodNode.access & ~Opcodes.ACC_FINAL;
-			methodNode.access = JVMUtil.makeAccess(methodNode.access, methodNode.name.equals("<init>") || patchInfo.makePublic);
-		}
-		for (FieldInfo fieldInfo : patchInfo.fields) {
-			//classNode.fields.add(new FieldNode(JVMUtil.makeAccess(fieldInfo.accessAsInt() & ~Opcodes.ACC_FINAL, patchInfo.makePublic), fieldInfo.real, fieldInfo.type.descriptor(), fieldInfo.type.signature(), null));
-		}
-		for (MethodInfo methodInfo : patchInfo.methods) {
-			//classNode.methods.add(new MethodNode(JVMUtil.makeAccess(methodInfo.accessAsInt() & ~Opcodes.ACC_FINAL, patchInfo.makePublic), methodInfo.real, methodInfo.descriptor(), methodInfo.signature(), null));
-		}
-		ClassWriter classWriter = new ClassWriter(classReader, 0);
-		classNode.accept(classWriter);
-		return classWriter.toByteArray();
+	private static void modifyDeclarations(DeclarationInfo declarationInfo, PatchInfo patchInfo) {
+		declarationInfo.accessFlags((f) -> f.without(AccessFlags.ACC_FINAL).makeAccessible(patchInfo.makePublic));
 	}
 
 	public String patchSource(String inputSource, String inputClassName) {
-		PatchInfo patchInfo = patchForClass(inputClassName);
+		PatchInfo patchInfo = getPatchInfo(inputClassName);
 		if (patchInfo == null) {
 			return inputSource;
 		}
@@ -100,7 +90,8 @@ public class Patcher {
 		return inputSource;
 	}
 
-	private static PatchInfo getOrMakePatchInfo(String className, String shortClassName) {
+	private PatchInfo getOrMakePatchInfo(String className, String shortClassName) {
+		className = JVMUtil.fileNameToClassName(className);
 		PatchInfo patchInfo = patchClasses.get(className);
 		if (patchInfo == null) {
 			patchInfo = new PatchInfo();
@@ -110,8 +101,9 @@ public class Patcher {
 		return patchInfo;
 	}
 
-	private static PatchInfo patchForClass(String className) {
-		return patchClasses.get(className.replace("/", ".").replace(".java", "").replace(".class", ""));
+	private PatchInfo getPatchInfo(String className) {
+		className = JVMUtil.fileNameToClassName(className);
+		return patchClasses.get(className);
 	}
 
 	private static String readFile(File file) {
@@ -130,8 +122,8 @@ public class Patcher {
 
 	private static class PatchInfo {
 		public boolean exposeInners = false;
-		List<MethodInfo> methods = new ArrayList<MethodInfo>();
-		List<FieldInfo> fields = new ArrayList<FieldInfo>();
+		List<MethodInfo> methods = new ArrayList<>();
+		List<FieldInfo> fields = new ArrayList<>();
 		boolean makePublic = false;
 		String shortClassName;
 	}

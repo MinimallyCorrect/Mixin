@@ -2,10 +2,10 @@ package me.nallar.mixin.internal.description;
 
 import org.junit.Assert;
 
-public class DescriptorTest {
+public class MethodDescriptorTest {
 	@org.junit.Test
 	public void testGetReturnType() throws Exception {
-		Descriptor d = new Descriptor("()Ljava/lang/String;", null);
+		MethodDescriptor d = new MethodDescriptor("()Ljava/lang/String;", null);
 		Type t = d.getReturnType();
 
 		Assert.assertEquals("Ljava/lang/String;", t.real);

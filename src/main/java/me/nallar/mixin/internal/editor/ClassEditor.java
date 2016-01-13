@@ -5,8 +5,6 @@ import me.nallar.mixin.internal.description.FieldInfo;
 import me.nallar.mixin.internal.description.MethodInfo;
 
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 public interface ClassEditor {

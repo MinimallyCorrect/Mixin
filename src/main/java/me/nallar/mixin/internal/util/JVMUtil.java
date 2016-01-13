@@ -108,6 +108,10 @@ public class JVMUtil {
 		return a;
 	}
 
+	public static String fileNameToClassName(String f) {
+		return f.replace("/", ".").replace(".java", "").replace(".class", "");
+	}
+
 	public static boolean hasFlag(int access, int flag) {
 		return (access & flag) != 0;
 	}
