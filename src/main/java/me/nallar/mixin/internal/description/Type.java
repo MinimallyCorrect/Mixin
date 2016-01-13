@@ -1,5 +1,6 @@
 package me.nallar.mixin.internal.description;
 
+import com.github.javaparser.ast.ImportDeclaration;
 import lombok.Data;
 import lombok.val;
 
@@ -135,5 +136,22 @@ public class Type {
 
 	public String genericOrReal() {
 		return generic == null ? real : generic;
+	}
+
+	public static Type resolve(com.github.javaparser.ast.type.Type type, Iterable<ImportDeclaration> imports) {
+		// TODO: 13/01/2016 Handle generic types (ArrayList<Type> -> resolve Type, and ArrayList.)
+		// TODO: 13/01/2016
+
+		String name = type.toStringWithoutComments().trim();
+
+		for (ImportDeclaration anImport : imports) {
+			String importName = anImport.getName().getName();
+			if (importName.endsWith(name)) {
+				name = importName;
+				break;
+			}
+		}
+
+		return new Type("L" + name + ";");
 	}
 }
