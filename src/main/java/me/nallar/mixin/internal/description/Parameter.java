@@ -1,9 +1,22 @@
 package me.nallar.mixin.internal.description;
 
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
-@Data
-public class Parameter {
+@EqualsAndHashCode(callSuper = true)
+@Getter
+@ToString
+public class Parameter extends Type {
 	public final String name;
-	public final Type type;
+
+	public Parameter(Type t, String name) {
+		super(t.real, t.generic);
+		this.name = name;
+	}
+
+	public Parameter(String real, String generic, String name) {
+		super(real, generic);
+		this.name = name;
+	}
 }

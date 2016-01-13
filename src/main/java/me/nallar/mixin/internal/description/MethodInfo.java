@@ -9,13 +9,13 @@ public interface MethodInfo extends DeclarationInfo {
 	List<Parameter> getParameters();
 
 	void setReturnType(Type returnType);
+	void setParameters(List<Parameter> parameters);
 
 	default void setAll(MethodInfo info) {
 		this.setName(info.getName());
 		this.setAccessFlags(info.getAccessFlags());
 		this.setReturnType(info.getReturnType());
-		this.getParameters().clear();
-		this.getParameters().addAll(info.getParameters());
+		this.setParameters(info.getParameters());
 	}
 
 	static MethodInfo of(AccessFlags accessFlags, String name, Type returnType, Parameter... parameters) {

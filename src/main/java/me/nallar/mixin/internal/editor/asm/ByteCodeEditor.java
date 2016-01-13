@@ -1,8 +1,8 @@
 package me.nallar.mixin.internal.editor.asm;
 
+import lombok.val;
 import me.nallar.mixin.internal.description.*;
 import me.nallar.mixin.internal.editor.ClassEditor;
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
@@ -11,9 +11,8 @@ import java.util.*;
 public class ByteCodeEditor implements ClassEditor {
 	private final ClassNode node;
 
-	public ByteCodeEditor(ClassReader reader) {
-		node = new ClassNode();
-		reader.accept(node, ClassReader.EXPAND_FRAMES);
+	public ByteCodeEditor(ClassNode node) {
+		this.node = node;
 	}
 
 	@Override
@@ -68,27 +67,35 @@ public class ByteCodeEditor implements ClassEditor {
 
 		@Override
 		public Type getReturnType() {
-			return new Descriptor(node.desc, node.signature).getReturnType();
+			return new MethodDescriptor(node.desc, node.signature).getReturnType();
 		}
 
 		@Override
 		public List<Parameter> getParameters() {
-			return null;
+			val descriptor = new MethodDescriptor(node.desc, node.signature);
+			return descriptor.getParameters();
 		}
 
 		@Override
 		public void setAccessFlags(AccessFlags accessFlags) {
-
+			node.access = accessFlags.access;
 		}
 
 		@Override
 		public void setName(String name) {
+			node.name = name;
+		}
+
+		@Override
+		public void setParameters(List<Parameter> parameters) {
 
 		}
 
 		@Override
 		public void setReturnType(Type returnType) {
-
+			val descriptor = new MethodDescriptor(node.desc, node.signature).withReturnType(returnType);
+			node.desc = descriptor.getDescriptor();
+			node.signature = descriptor.getSignature();
 		}
 
 		public static MethodInfo wrap(MethodNode node) {
