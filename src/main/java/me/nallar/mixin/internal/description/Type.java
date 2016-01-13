@@ -3,6 +3,7 @@ package me.nallar.mixin.internal.description;
 import com.github.javaparser.ast.ImportDeclaration;
 import lombok.Data;
 import lombok.val;
+import me.nallar.mixin.internal.util.JVMUtil;
 
 import java.util.*;
 
@@ -123,6 +124,19 @@ public class Type {
 		return real.charAt(0) != 'L';
 	}
 
+	public String getSimpleName() {
+		if (isPrimitiveType())
+			return getPrimitiveTypeName();
+		else
+			return getClassName();
+	}
+
+	public String getPrimitiveTypeName() {
+		if (!isPrimitiveType())
+			throw new RuntimeException("Can't get primitive name for class type");
+		return JVMUtil.descriptorToPrimitiveType(real);
+	}
+
 	public String getClassName() {
 		if (isPrimitiveType()) {
 			throw new RuntimeException("Can't get classname for primitive type");
@@ -153,5 +167,21 @@ public class Type {
 		}
 
 		return new Type("L" + name + ";");
+	}
+
+	public String unresolve(Iterable<ImportDeclaration> imports) {
+		if (isPrimitiveType()) {
+			return getPrimitiveTypeName();
+		}
+		String className = getClassName();
+
+		for (ImportDeclaration anImport : imports) {
+			String importName = anImport.getName().getName();
+			if (className.startsWith(importName)) {
+				return className.replace(importName + ".", "");
+			}
+		}
+
+		return className;
 	}
 }

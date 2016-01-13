@@ -4,9 +4,11 @@ import lombok.val;
 import me.nallar.mixin.internal.description.*;
 import me.nallar.mixin.internal.editor.ClassEditor;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.util.*;
+import java.util.stream.*;
 
 public class ByteCodeEditor implements ClassEditor {
 	private final ClassNode node;
@@ -35,17 +37,61 @@ public class ByteCodeEditor implements ClassEditor {
 
 	@Override
 	public void add(FieldInfo field) {
-		throw new UnsupportedOperationException();
+		val node = new FieldNode(0, null, null, null, null);
+		val nodeInfo = new FieldNodeInfo(node);
+		nodeInfo.setAll(field);
 	}
 
 	@Override
 	public List<MethodInfo> getMethods() {
-		throw new UnsupportedOperationException();
+		return node.methods.stream().map(MethodNodeInfo::new).collect(Collectors.toCollection(ArrayList::new));
 	}
 
 	@Override
 	public List<FieldInfo> getFields() {
-		throw new UnsupportedOperationException();
+		return node.fields.stream().map(FieldNodeInfo::new).collect(Collectors.toCollection(ArrayList::new));
+	}
+
+	static class FieldNodeInfo implements FieldInfo {
+		private final FieldNode node;
+		private Type type;
+
+		FieldNodeInfo(FieldNode node) {
+			this.node = node;
+			type = new Type(node.desc, node.signature);
+		}
+
+		@Override
+		public String getName() {
+			return node.name;
+		}
+
+		@Override
+		public void setName(String name) {
+			node.name = name;
+		}
+
+		@Override
+		public AccessFlags getAccessFlags() {
+			return new AccessFlags(node.access);
+		}
+
+		@Override
+		public Type getType() {
+			return type;
+		}
+
+		@Override
+		public void setAccessFlags(AccessFlags accessFlags) {
+			node.access = accessFlags.access;
+		}
+
+		@Override
+		public void setType(Type type) {
+			this.type = type;
+			node.desc = type.real;
+			node.signature = type.generic;
+		}
 	}
 
 	static class MethodNodeInfo implements MethodInfo {

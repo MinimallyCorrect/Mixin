@@ -8,23 +8,34 @@ import java.util.*;
 public class JVMUtil {
 	public static String getDescriptor(Class<?> clazz) {
 		if (clazz.isPrimitive()) {
-			if (clazz.equals(Boolean.TYPE)) {
-				return "Z";
-			} else if (clazz.equals(Short.TYPE)) {
-				return "S";
-			} else if (clazz.equals(Long.TYPE)) {
-				return "J";
-			} else if (clazz.equals(Integer.TYPE)) {
-				return "I";
-			} else if (clazz.equals(Float.TYPE)) {
-				return "F";
-			} else if (clazz.equals(Double.TYPE)) {
-				return "D";
-			} else if (clazz.equals(Character.TYPE)) {
-				return "C";
-			}
+			return descriptorToPrimitiveType(clazz.getSimpleName());
 		}
 		return 'L' + clazz.getCanonicalName() + ';';
+	}
+
+	public static String descriptorToPrimitiveType(String descriptor) {
+		switch (descriptor) {
+			case "B":
+				return "byte";
+			case "C":
+				return "char";
+			case "D":
+				return "double";
+			case "F":
+				return "float";
+			case "I":
+				return "int";
+			case "J":
+				return "long";
+			case "S":
+				return "short";
+			case "V":
+				return "void";
+			case "Z":
+				return "boolean";
+		}
+
+		throw new RuntimeException("Invalid descriptor: " + descriptor);
 	}
 
 	public static String primitiveTypeToDescriptor(String primitive) {
@@ -50,6 +61,15 @@ public class JVMUtil {
 		}
 
 		throw new RuntimeException("Invalid primitive type: " + primitive);
+	}
+
+	public static <T extends Enum<?>> T searchEnum(Class<T> enumeration, String search) {
+		for (T each : enumeration.getEnumConstants()) {
+			if (each.name().equalsIgnoreCase(search)) {
+				return each;
+			}
+		}
+		return null;
 	}
 
 	public static String getParameterList(Method m) {
