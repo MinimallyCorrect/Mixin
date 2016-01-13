@@ -8,6 +8,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.objectweb.asm.tree.MethodNode;
 
+import java.util.Arrays;
+
 public class MethodNodeInfoTest {
 	@Test
 	public void testWrap() throws Exception {
@@ -26,7 +28,9 @@ public class MethodNodeInfoTest {
 		Assert.assertEquals("()Ljava/lang/Boolean;", node.desc);
 
 		val parameters = info.getParameters();
-		parameters.add(new Parameter(null, "test"));
-		Assert.assertEquals(info.getParameters());
+		parameters.add(new Parameter(new Type("Ljava/lang/String;", null), "test"));
+		info.setParameters(parameters);
+
+		Assert.assertEquals("(Ljava/lang/String;)Ljava/lang/Boolean;", ((ByteCodeEditor.MethodNodeInfo) info).getDescriptor());
 	}
 }

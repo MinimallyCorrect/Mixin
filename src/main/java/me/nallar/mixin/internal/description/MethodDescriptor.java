@@ -86,7 +86,7 @@ public class MethodDescriptor {
 		node.signature = getSignature();
 	}
 
-	private String getDescriptor() {
+	public String getDescriptor() {
 		StringBuilder desc = new StringBuilder("(");
 
 		for (Parameter parameter : parameters) {
