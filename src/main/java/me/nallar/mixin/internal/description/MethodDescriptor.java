@@ -82,8 +82,48 @@ public class MethodDescriptor {
 	}
 
 	public void saveTo(MethodNode node) {
-		throw new UnsupportedOperationException("TODO: 13/01/2016 Implement getDescriptor()/getSignature()"); // TODO
-		// node.desc = getDescriptor();
-		// node.signature = getSignature();
+		node.desc = getDescriptor();
+		node.signature = getSignature();
+	}
+
+	private String getDescriptor() {
+		StringBuilder desc = new StringBuilder("(");
+
+		for (Parameter parameter : parameters) {
+			desc.append(parameter.real);
+		}
+
+		desc.append(")").append(returnType.real);
+
+		return desc.toString();
+	}
+
+	private String getSignature() {
+		boolean any = false;
+		StringBuilder signature = new StringBuilder("(");
+
+		for (Parameter parameter : parameters) {
+			String generic = parameter.generic;
+			if (generic == null)
+				generic = parameter.real;
+			else
+				any = true;
+
+			signature.append(generic);
+		}
+
+		signature.append(")");
+		String generic = returnType.generic;
+		if (generic == null)
+			generic = returnType.real;
+		else
+			any = true;
+
+		signature.append(generic);
+
+		if (any)
+			return signature.toString();
+
+		return null;
 	}
 }
