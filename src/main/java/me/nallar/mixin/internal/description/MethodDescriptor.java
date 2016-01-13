@@ -3,28 +3,30 @@ package me.nallar.mixin.internal.description;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.val;
+import org.objectweb.asm.tree.MethodNode;
 
 import java.util.*;
 
 @Getter
 @ToString
 public class MethodDescriptor {
-	// TODO: 13/01/2016 Refactor to store Type returnType and List<Parameter> parameters
-	private final String descriptor;
-	private final String signature;
-	private final List<String> parameterNames;
+	private final List<Parameter> parameters;
+	private final Type returnType;
+
+	public MethodDescriptor(List<Parameter> parameters, Type returnType) {
+		this.parameters = parameters;
+		this.returnType = returnType;
+	}
 
 	public MethodDescriptor(String descriptor, String signature) {
 		this(descriptor, signature, null);
 	}
 
 	public MethodDescriptor(String descriptor, String signature, List<String> parameterNames) {
-		this.descriptor = descriptor;
-		this.signature = signature;
-		this.parameterNames = parameterNames == null ? Collections.emptyList() : Collections.unmodifiableList(parameterNames);
+		this(getParameters(descriptor, signature, parameterNames), getReturnType(descriptor, signature));
 	}
 
-	public Type getReturnType() {
+	private static Type getReturnType(String descriptor, String signature) {
 		String returnDescriptor = after(')', descriptor);
 		String returnSignature = null;
 
@@ -34,7 +36,7 @@ public class MethodDescriptor {
 		return new Type(returnDescriptor, returnSignature);
 	}
 
-	public List<Parameter> getParameters() {
+	private static List<Parameter> getParameters(String descriptor, String signature, List<String> parameterNames) {
 		val parameters = new ArrayList<Parameter>();
 
 		List<Type> parameterTypes = Type.of(getParameters(descriptor), getParameters(signature));
@@ -47,28 +49,12 @@ public class MethodDescriptor {
 		return parameters;
 	}
 
-	public MethodDescriptor withParameters(List<Parameter> t) {
-		val descriptor = withParameters(type.)
+	public MethodDescriptor withParameters(List<Parameter> parameters) {
+		return new MethodDescriptor(parameters, returnType);
 	}
 
-	public MethodDescriptor withReturnType(Type t) {
-		val descriptor = withReturnType(this.descriptor, t.real);
-
-		String signature = null;
-
-		if (this.signature != null || t.generic != null)
-			signature = withReturnType(this.signatureOrDescriptor(), t.genericOrReal());
-
-		return new MethodDescriptor(descriptor, signature);
-	}
-
-	private String signatureOrDescriptor() {
-		return signature == null ? descriptor : signature;
-	}
-
-	private static String withReturnType(String desc, String newType) {
-		String before = before(')', desc);
-		return before + ')' + newType;
+	public MethodDescriptor withReturnType(Type returnType) {
+		return new MethodDescriptor(parameters, returnType);
 	}
 
 	private static String getParameters(String descriptor) {
@@ -93,5 +79,11 @@ public class MethodDescriptor {
 			throw new RuntimeException("Could not find '" + c + "' in '" + in + "'");
 
 		return in.substring(index + 1, in.length());
+	}
+
+	public void saveTo(MethodNode node) {
+		throw new UnsupportedOperationException("TODO: 13/01/2016 Implement getDescriptor()/getSignature()"); // TODO
+		// node.desc = getDescriptor();
+		// node.signature = getSignature();
 	}
 }
