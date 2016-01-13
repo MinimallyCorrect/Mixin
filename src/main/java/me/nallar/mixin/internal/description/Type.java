@@ -38,6 +38,8 @@ public class Type {
 	public final String generic;
 
 	public Type(String real, String generic) {
+		if (generic.equals(real))
+			generic = null;
 		this.real = real;
 		this.generic = generic;
 	}
