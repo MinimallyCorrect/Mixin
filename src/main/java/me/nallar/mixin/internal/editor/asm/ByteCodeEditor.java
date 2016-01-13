@@ -103,5 +103,9 @@ public class ByteCodeEditor implements ClassEditor {
 		public static MethodInfo wrap(MethodNode node) {
 			return new MethodNodeInfo(node);
 		}
+
+		public String getDescriptor() {
+			return descriptor.getDescriptor();
+		}
 	}
 }
