@@ -1,6 +1,6 @@
-package me.nallar.mixin.internal.util;
+package me.nallar.jartransformer.internal.util;
 
-import me.nallar.mixin.internal.description.AccessFlags;
+import me.nallar.jartransformer.api.AccessFlags;
 
 import java.lang.reflect.*;
 import java.util.*;

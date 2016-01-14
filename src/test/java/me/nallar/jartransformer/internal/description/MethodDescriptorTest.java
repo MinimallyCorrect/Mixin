@@ -1,4 +1,4 @@
-package me.nallar.mixin.internal.description;
+package me.nallar.jartransformer.internal.description;
 
 import org.junit.Assert;
 

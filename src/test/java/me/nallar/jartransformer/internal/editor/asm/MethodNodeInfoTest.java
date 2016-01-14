@@ -1,14 +1,12 @@
-package me.nallar.mixin.internal.editor.asm;
+package me.nallar.jartransformer.internal.editor.asm;
 
 import lombok.val;
-import me.nallar.mixin.internal.description.AccessFlags;
-import me.nallar.mixin.internal.description.Parameter;
-import me.nallar.mixin.internal.description.Type;
+import me.nallar.jartransformer.api.AccessFlags;
+import me.nallar.jartransformer.internal.description.Parameter;
+import me.nallar.jartransformer.internal.description.Type;
 import org.junit.Assert;
 import org.junit.Test;
 import org.objectweb.asm.tree.MethodNode;
-
-import java.util.Arrays;
 
 public class MethodNodeInfoTest {
 	@Test
