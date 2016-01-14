@@ -1,11 +1,17 @@
-package me.nallar.mixin.internal.editor;
+package me.nallar.mixin;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseException;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.TypeDeclaration;
-import me.nallar.mixin.internal.description.*;
+import lombok.val;
+import me.nallar.mixin.internal.description.AccessFlags;
+import me.nallar.mixin.internal.description.DeclarationInfo;
+import me.nallar.mixin.internal.description.FieldInfo;
+import me.nallar.mixin.internal.description.MethodInfo;
+import me.nallar.mixin.internal.editor.ClassEditor;
 import me.nallar.mixin.internal.editor.asm.ByteCodeEditor;
+import me.nallar.mixin.internal.editor.javaparser.SourceEditor;
 import me.nallar.mixin.internal.util.JVMUtil;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -15,8 +21,20 @@ import java.io.*;
 import java.nio.charset.*;
 import java.util.*;
 
-public class Patcher {
+public class MixinPrePatcher {
 	private final Map<String, PatchInfo> patchClasses = new HashMap<>();
+
+	public void patch(ClassEditor editor, PatchInfo patchInfo) {
+		editor.accessFlags((f) -> f.without(AccessFlags.ACC_FINAL).makeAccessible(true));
+
+		// TODO patchInfo.exposeInners support - add methods for inner classes
+		editor.getFields().forEach(d -> modifyDeclarations(d, patchInfo));
+		editor.getMethods().forEach(d -> modifyDeclarations(d, patchInfo));
+
+		patchInfo.fields.forEach(editor::add);
+
+		patchInfo.methods.forEach(editor::add);
+	}
 
 	public String patch(String source, String name) {
 		PatchInfo patchInfo = getPatchInfo(name);
@@ -33,6 +51,10 @@ public class Patcher {
 		String packageName = cu.getPackage().getName().getName();
 		for (TypeDeclaration typeDeclaration : cu.getTypes()) {
 			String shortClassName = typeDeclaration.getName();
+			if ((packageName + '.' + shortClassName).equalsIgnoreCase(name)) {
+				val editor = new SourceEditor(typeDeclaration, cu.getImports());
+				patch(editor, patchInfo);
+			}
 		}
 
 		return cu.toString();
@@ -47,47 +69,15 @@ public class Patcher {
 		ClassReader reader = new ClassReader(bytes);
 		reader.accept(node, ClassReader.EXPAND_FRAMES);
 
-		patch(new ByteCodeEditor(node), name, patchInfo);
+		patch(new ByteCodeEditor(node), patchInfo);
 
 		ClassWriter classWriter = new ClassWriter(reader, 0);
 		node.accept(classWriter);
 		return classWriter.toByteArray();
 	}
 
-	public void patch(ClassEditor editor, String name, PatchInfo patchInfo) {
-		editor.accessFlags((f) -> f.without(AccessFlags.ACC_FINAL).makeAccessible(true));
-
-		// TODO patchInfo.exposeInners - add methods for inner classes
-		editor.getFields().forEach(d -> modifyDeclarations(d, patchInfo));
-		editor.getMethods().forEach(d -> modifyDeclarations(d, patchInfo));
-
-		patchInfo.fields.forEach(editor::add);
-
-		patchInfo.methods.forEach(editor::add);
-	}
-
 	private static void modifyDeclarations(DeclarationInfo declarationInfo, PatchInfo patchInfo) {
 		declarationInfo.accessFlags((f) -> f.without(AccessFlags.ACC_FINAL).makeAccessible(patchInfo.makePublic));
-	}
-
-	public String patchSource(String inputSource, String inputClassName) {
-		PatchInfo patchInfo = getPatchInfo(inputClassName);
-		if (patchInfo == null) {
-			return inputSource;
-		}
-
-		CompilationUnit cu;
-		try {
-			cu = JavaParser.parse(new ByteArrayInputStream(inputSource.getBytes(Charset.forName("UTF-8"))), "UTF-8");
-		} catch (ParseException e) {
-			throw new RuntimeException(e);
-		}
-
-		for (TypeDeclaration typeDeclaration : cu.getTypes()) {
-			System.out.println(typeDeclaration.toString());
-		}
-
-		return inputSource;
 	}
 
 	private PatchInfo getOrMakePatchInfo(String className, String shortClassName) {
