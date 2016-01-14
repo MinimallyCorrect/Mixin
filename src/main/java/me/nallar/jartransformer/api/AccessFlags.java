@@ -1,6 +1,6 @@
-package me.nallar.mixin.internal.description;
+package me.nallar.jartransformer.api;
 
-import me.nallar.mixin.internal.util.JVMUtil;
+import me.nallar.jartransformer.internal.util.JVMUtil;
 
 public class AccessFlags {
 	public static final int ACC_PUBLIC = 0x0001; // class, field, method

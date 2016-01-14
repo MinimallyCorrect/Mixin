@@ -1,10 +1,8 @@
-package me.nallar.mixin.internal.util;
+package me.nallar.jartransformer.internal.util;
 
 import java.util.*;
 
 public interface Splitter {
-	Iterable<String> split(String s);
-
 	static Splitter on(char c) {
 		return s -> {
 			ArrayList<String> split = new ArrayList<>();
@@ -23,4 +21,6 @@ public interface Splitter {
 			return split;
 		};
 	}
+
+	Iterable<String> split(String s);
 }

@@ -1,14 +1,18 @@
-package me.nallar.mixin.internal.editor.javaparser;
+package me.nallar.jartransformer.internal.editor.javaparser;
 
 import com.github.javaparser.ast.ImportDeclaration;
+import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.*;
-import com.github.javaparser.ast.type.*;
+import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.ast.type.PrimitiveType;
 import lombok.val;
-import me.nallar.mixin.internal.description.*;
-import me.nallar.mixin.internal.description.Parameter;
-import me.nallar.mixin.internal.description.Type;
-import me.nallar.mixin.internal.editor.ClassEditor;
-import me.nallar.mixin.internal.util.JVMUtil;
+import me.nallar.jartransformer.api.AccessFlags;
+import me.nallar.jartransformer.api.ClassEditor;
+import me.nallar.jartransformer.api.FieldInfo;
+import me.nallar.jartransformer.api.MethodInfo;
+import me.nallar.jartransformer.internal.description.Parameter;
+import me.nallar.jartransformer.internal.description.Type;
+import me.nallar.jartransformer.internal.util.JVMUtil;
 
 import java.util.*;
 import java.util.stream.*;
@@ -16,10 +20,17 @@ import java.util.stream.*;
 public class SourceEditor implements ClassEditor {
 	private final TypeDeclaration type;
 	private final Iterable<ImportDeclaration> imports;
+	private final PackageDeclaration packageDeclaration;
 
-	public SourceEditor(TypeDeclaration type, Iterable<ImportDeclaration> imports) {
+	public SourceEditor(TypeDeclaration type, PackageDeclaration packageDeclaration, Iterable<ImportDeclaration> imports) {
 		this.type = type;
+		this.packageDeclaration = packageDeclaration;
 		this.imports = imports;
+	}
+
+	@Override
+	public String getName() {
+		return packageDeclaration.getName().getName() + '.' + type.getName();
 	}
 
 	@Override
@@ -111,13 +122,13 @@ public class SourceEditor implements ClassEditor {
 		}
 
 		@Override
-		public Type getType() {
-			return Type.resolve(declaration.getType(), imports);
+		public void setAccessFlags(AccessFlags accessFlags) {
+			declaration.setModifiers(accessFlags.access);
 		}
 
 		@Override
-		public void setAccessFlags(AccessFlags accessFlags) {
-			declaration.setModifiers(accessFlags.access);
+		public Type getType() {
+			return Type.resolve(declaration.getType(), imports);
 		}
 
 		@Override
@@ -139,13 +150,13 @@ public class SourceEditor implements ClassEditor {
 		}
 
 		@Override
-		public List<Parameter> getParameters() {
-			throw new UnsupportedOperationException();
+		public void setReturnType(Type type) {
+			declaration.setType(setType(type, declaration.getType()));
 		}
 
 		@Override
-		public void setReturnType(Type type) {
-			declaration.setType(setType(type, declaration.getType()));
+		public List<Parameter> getParameters() {
+			throw new UnsupportedOperationException();
 		}
 
 		@Override

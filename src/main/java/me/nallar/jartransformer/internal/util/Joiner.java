@@ -1,10 +1,8 @@
-package me.nallar.mixin.internal.util;
+package me.nallar.jartransformer.internal.util;
 
 import java.util.*;
 
 public interface Joiner {
-	String join(Iterable<Object> s);
-
 	static Joiner on(String join) {
 		return parts -> {
 			Iterator<Object> i = parts.iterator();
@@ -20,4 +18,6 @@ public interface Joiner {
 			return sb.toString();
 		};
 	}
+
+	String join(Iterable<Object> s);
 }

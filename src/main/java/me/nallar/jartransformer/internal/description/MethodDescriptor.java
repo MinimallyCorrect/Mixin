@@ -1,4 +1,4 @@
-package me.nallar.mixin.internal.description;
+package me.nallar.jartransformer.internal.description;
 
 import lombok.Getter;
 import lombok.ToString;
@@ -49,14 +49,6 @@ public class MethodDescriptor {
 		return parameters;
 	}
 
-	public MethodDescriptor withParameters(List<Parameter> parameters) {
-		return new MethodDescriptor(parameters, returnType);
-	}
-
-	public MethodDescriptor withReturnType(Type returnType) {
-		return new MethodDescriptor(parameters, returnType);
-	}
-
 	private static String getParameters(String descriptor) {
 		if (descriptor == null)
 			return null;
@@ -79,6 +71,14 @@ public class MethodDescriptor {
 			throw new RuntimeException("Could not find '" + c + "' in '" + in + "'");
 
 		return in.substring(index + 1, in.length());
+	}
+
+	public MethodDescriptor withParameters(List<Parameter> parameters) {
+		return new MethodDescriptor(parameters, returnType);
+	}
+
+	public MethodDescriptor withReturnType(Type returnType) {
+		return new MethodDescriptor(parameters, returnType);
 	}
 
 	public void saveTo(MethodNode node) {

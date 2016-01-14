@@ -1,8 +1,13 @@
-package me.nallar.mixin.internal.editor.asm;
+package me.nallar.jartransformer.internal.editor.asm;
 
 import lombok.val;
-import me.nallar.mixin.internal.description.*;
-import me.nallar.mixin.internal.editor.ClassEditor;
+import me.nallar.jartransformer.api.AccessFlags;
+import me.nallar.jartransformer.api.ClassEditor;
+import me.nallar.jartransformer.api.FieldInfo;
+import me.nallar.jartransformer.api.MethodInfo;
+import me.nallar.jartransformer.internal.description.MethodDescriptor;
+import me.nallar.jartransformer.internal.description.Parameter;
+import me.nallar.jartransformer.internal.description.Type;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -15,6 +20,11 @@ public class ByteCodeEditor implements ClassEditor {
 
 	public ByteCodeEditor(ClassNode node) {
 		this.node = node;
+	}
+
+	@Override
+	public String getName() {
+		return node.name.replace('/', '.');
 	}
 
 	@Override
@@ -77,13 +87,13 @@ public class ByteCodeEditor implements ClassEditor {
 		}
 
 		@Override
-		public Type getType() {
-			return type;
+		public void setAccessFlags(AccessFlags accessFlags) {
+			node.access = accessFlags.access;
 		}
 
 		@Override
-		public void setAccessFlags(AccessFlags accessFlags) {
-			node.access = accessFlags.access;
+		public Type getType() {
+			return type;
 		}
 
 		@Override
@@ -103,9 +113,18 @@ public class ByteCodeEditor implements ClassEditor {
 			descriptor = new MethodDescriptor(node.desc, node.signature);
 		}
 
+		public static MethodInfo wrap(MethodNode node) {
+			return new MethodNodeInfo(node);
+		}
+
 		@Override
 		public AccessFlags getAccessFlags() {
 			return new AccessFlags(node.access);
+		}
+
+		@Override
+		public void setAccessFlags(AccessFlags accessFlags) {
+			node.access = accessFlags.access;
 		}
 
 		@Override
@@ -114,8 +133,19 @@ public class ByteCodeEditor implements ClassEditor {
 		}
 
 		@Override
+		public void setName(String name) {
+			node.name = name;
+		}
+
+		@Override
 		public Type getReturnType() {
 			return new MethodDescriptor(node.desc, node.signature).getReturnType();
+		}
+
+		@Override
+		public void setReturnType(Type returnType) {
+			descriptor = descriptor.withReturnType(returnType);
+			descriptor.saveTo(node);
 		}
 
 		@Override
@@ -125,29 +155,9 @@ public class ByteCodeEditor implements ClassEditor {
 		}
 
 		@Override
-		public void setAccessFlags(AccessFlags accessFlags) {
-			node.access = accessFlags.access;
-		}
-
-		@Override
-		public void setName(String name) {
-			node.name = name;
-		}
-
-		@Override
 		public void setParameters(List<Parameter> parameters) {
 			descriptor = descriptor.withParameters(parameters);
 			descriptor.saveTo(node);
-		}
-
-		@Override
-		public void setReturnType(Type returnType) {
-			descriptor = descriptor.withReturnType(returnType);
-			descriptor.saveTo(node);
-		}
-
-		public static MethodInfo wrap(MethodNode node) {
-			return new MethodNodeInfo(node);
 		}
 
 		public String getDescriptor() {

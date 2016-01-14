@@ -1,13 +1,11 @@
-package me.nallar.mixin.internal.editor;
-
-import me.nallar.mixin.internal.description.AccessFlags;
-import me.nallar.mixin.internal.description.FieldInfo;
-import me.nallar.mixin.internal.description.MethodInfo;
+package me.nallar.jartransformer.api;
 
 import java.util.*;
-import java.util.function.Function;
+import java.util.function.*;
 
 public interface ClassEditor {
+	String getName();
+
 	AccessFlags getAccessFlags();
 
 	void setAccessFlags(AccessFlags accessFlags);

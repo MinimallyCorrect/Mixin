@@ -1,6 +1,6 @@
-package me.nallar.mixin.internal.description;
+package me.nallar.jartransformer.api;
 
-import java.util.function.Function;
+import java.util.function.*;
 
 public interface DeclarationInfo {
 	String getName();

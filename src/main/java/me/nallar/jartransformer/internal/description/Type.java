@@ -1,9 +1,9 @@
-package me.nallar.mixin.internal.description;
+package me.nallar.jartransformer.internal.description;
 
 import com.github.javaparser.ast.ImportDeclaration;
 import lombok.Data;
 import lombok.val;
-import me.nallar.mixin.internal.util.JVMUtil;
+import me.nallar.jartransformer.internal.util.JVMUtil;
 
 import java.util.*;
 
@@ -44,6 +44,10 @@ public class Type {
 			generic = null;
 		this.real = real;
 		this.generic = generic;
+	}
+
+	public Type(String real) {
+		this(real, null);
 	}
 
 	public static List<Type> of(String realDesc, String genericDesc) {
@@ -101,7 +105,7 @@ public class Type {
 					int genericCount = 0;
 					innerLoop:
 					while (pos < signature.length())
-						switch (c = signature.charAt(pos++)) {
+						switch (signature.charAt(pos++)) {
 							case ';':
 								if (genericCount > 0)
 									break;
@@ -118,6 +122,23 @@ public class Type {
 						}
 			}
 		return types;
+	}
+
+	public static Type resolve(com.github.javaparser.ast.type.Type type, Iterable<ImportDeclaration> imports) {
+		// TODO: 13/01/2016 Handle generic types (ArrayList<Type> -> resolve Type, and ArrayList.)
+		// TODO: 13/01/2016
+
+		String name = type.toStringWithoutComments().trim();
+
+		for (ImportDeclaration anImport : imports) {
+			String importName = anImport.getName().getName();
+			if (importName.endsWith(name)) {
+				name = importName;
+				break;
+			}
+		}
+
+		return new Type("L" + name + ";");
 	}
 
 	public boolean isPrimitiveType() {
@@ -144,29 +165,8 @@ public class Type {
 		return real.substring(1, real.length() - 1).replace('/', '.');
 	}
 
-	public Type(String real) {
-		this(real, null);
-	}
-
 	public String genericOrReal() {
 		return generic == null ? real : generic;
-	}
-
-	public static Type resolve(com.github.javaparser.ast.type.Type type, Iterable<ImportDeclaration> imports) {
-		// TODO: 13/01/2016 Handle generic types (ArrayList<Type> -> resolve Type, and ArrayList.)
-		// TODO: 13/01/2016
-
-		String name = type.toStringWithoutComments().trim();
-
-		for (ImportDeclaration anImport : imports) {
-			String importName = anImport.getName().getName();
-			if (importName.endsWith(name)) {
-				name = importName;
-				break;
-			}
-		}
-
-		return new Type("L" + name + ";");
 	}
 
 	public String unresolve(Iterable<ImportDeclaration> imports) {
