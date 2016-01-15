@@ -1,67 +1,71 @@
 package me.nallar.jartransformer;
 
-import com.github.javaparser.JavaParser;
-import com.github.javaparser.ParseException;
-import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.TypeDeclaration;
-import me.nallar.jartransformer.api.ClassEditor;
-import me.nallar.jartransformer.internal.editor.asm.ByteCodeEditor;
-import me.nallar.jartransformer.internal.editor.javaparser.SourceEditor;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.tree.ClassNode;
-
 import java.io.*;
-import java.nio.charset.*;
+import java.util.*;
+import java.util.zip.*;
 
-public abstract class JarTransformer {
-	/**
-	 * Determines whether a class should be transformed
-	 *
-	 * @param name Full class name, eg. java.lang.String
-	 * @return Whether the given class should be transformed
-	 */
-	public abstract boolean shouldTransformClass(String name);
-
-	/**
-	 * @param editor editor instance associated with a class
-	 */
-	public abstract void transformClass(ClassEditor editor);
-
-	public String transformJava(String source, String name) {
-		if (!shouldTransformClass(name))
-			return source;
-
-		CompilationUnit cu;
-		try {
-			cu = JavaParser.parse(new ByteArrayInputStream(source.getBytes(Charset.forName("UTF-8"))), "UTF-8");
-		} catch (ParseException e) {
-			throw new RuntimeException(e);
-		}
-
-		String packageName = cu.getPackage().getName().getName();
-		for (TypeDeclaration typeDeclaration : cu.getTypes()) {
-			String shortClassName = typeDeclaration.getName();
-			if ((packageName + '.' + shortClassName).equalsIgnoreCase(name)) {
-				transformClass(new SourceEditor(typeDeclaration, cu.getPackage(), cu.getImports()));
+public abstract class JarTransformer extends JavaTransformer {
+	private static byte[] readFully(InputStream is)
+		throws IOException {
+		byte[] output = {};
+		int pos = 0;
+		while (true) {
+			int bytesToRead;
+			if (pos >= output.length) {
+				bytesToRead = output.length + 4096;
+				if (output.length < pos + bytesToRead) {
+					output = Arrays.copyOf(output, pos + bytesToRead);
+				}
+			} else {
+				bytesToRead = output.length - pos;
 			}
+			int cc = is.read(output, pos, bytesToRead);
+			if (cc < 0) {
+				if (output.length != pos) {
+					output = Arrays.copyOf(output, pos);
+				}
+				break;
+			}
+			pos += cc;
 		}
-
-		return cu.toString();
+		return output;
 	}
 
-	public byte[] transformClass(byte[] bytes, String name) {
-		if (!shouldTransformClass(name))
-			return bytes;
+	public void transform(File input, File output) {
+		try {
+			transform(new ZipInputStream(new BufferedInputStream(new FileInputStream(input))), new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(output))));
+		} catch (FileNotFoundException e) {
+			throw new IOError(e);
+		}
+	}
 
-		ClassNode node = new ClassNode();
-		ClassReader reader = new ClassReader(bytes);
-		reader.accept(node, ClassReader.EXPAND_FRAMES);
+	public void transform(ZipInputStream is, ZipOutputStream os) {
+		ZipEntry entry;
+		try {
+			while ((entry = is.getNextEntry()) != null) {
+				byte[] data = readFully(is);
 
-		transformClass(new ByteCodeEditor(node));
+				String name = entry.getName();
+				if (name.endsWith(".java")) {
+					String clazzName = name.substring(0, name.length() - 5).replace('/', '.');
+					data = transformJava(data, clazzName);
+				} else if (name.endsWith(".class")) {
+					String clazzName = name.substring(0, name.length() - 6).replace('/', '.');
+					data = transformClass(data, clazzName);
+				}
 
-		ClassWriter classWriter = new ClassWriter(reader, 0);
-		node.accept(classWriter);
-		return classWriter.toByteArray();
+				os.putNextEntry(new ZipEntry(entry));
+				os.write(data);
+			}
+		} catch (IOException e) {
+			throw new IOError(e);
+		} finally {
+			try {
+				is.close();
+				os.close();
+			} catch (IOException e) {
+				throw new IOError(e);
+			}
+		}
 	}
 }
