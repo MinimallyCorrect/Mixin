@@ -2,7 +2,7 @@ package me.nallar.jartransformer.internal.editor.asm;
 
 import lombok.val;
 import me.nallar.jartransformer.api.AccessFlags;
-import me.nallar.jartransformer.api.ClassEditor;
+import me.nallar.jartransformer.api.ClassInfo;
 import me.nallar.jartransformer.api.FieldInfo;
 import me.nallar.jartransformer.api.MethodInfo;
 import me.nallar.jartransformer.internal.description.MethodDescriptor;
@@ -15,16 +15,21 @@ import org.objectweb.asm.tree.MethodNode;
 import java.util.*;
 import java.util.stream.*;
 
-public class ByteCodeEditor implements ClassEditor {
+public class ByteCodeInfo implements ClassInfo {
 	private final ClassNode node;
 
-	public ByteCodeEditor(ClassNode node) {
+	public ByteCodeInfo(ClassNode node) {
 		this.node = node;
 	}
 
 	@Override
 	public String getName() {
 		return node.name.replace('/', '.');
+	}
+
+	@Override
+	public void setName(String name) {
+		node.name = name.replace('.', '/');
 	}
 
 	@Override

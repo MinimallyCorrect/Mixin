@@ -16,7 +16,7 @@ public class MethodNodeInfoTest {
 		node.name = "test";
 		node.desc = "()Ljava/lang/String;";
 
-		val info = ByteCodeEditor.MethodNodeInfo.wrap(node);
+		val info = ByteCodeInfo.MethodNodeInfo.wrap(node);
 
 		Assert.assertEquals("test", info.getName());
 		Assert.assertEquals("java.lang.String", info.getReturnType().getClassName());
@@ -29,6 +29,6 @@ public class MethodNodeInfoTest {
 		parameters.add(new Parameter(new Type("Ljava/lang/String;", null), "test"));
 		info.setParameters(parameters);
 
-		Assert.assertEquals("(Ljava/lang/String;)Ljava/lang/Boolean;", ((ByteCodeEditor.MethodNodeInfo) info).getDescriptor());
+		Assert.assertEquals("(Ljava/lang/String;)Ljava/lang/Boolean;", ((ByteCodeInfo.MethodNodeInfo) info).getDescriptor());
 	}
 }

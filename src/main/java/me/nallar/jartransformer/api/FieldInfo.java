@@ -3,14 +3,10 @@ package me.nallar.jartransformer.api;
 import me.nallar.jartransformer.internal.description.Type;
 import me.nallar.jartransformer.internal.description.impl.FieldInfoImplementation;
 
-public interface FieldInfo extends DeclarationInfo {
+public interface FieldInfo extends Named, Accessible {
 	static FieldInfo of(AccessFlags accessFlags, Type type, String name) {
 		return new FieldInfoImplementation(accessFlags, type, name);
 	}
-
-	AccessFlags getAccessFlags();
-
-	void setAccessFlags(AccessFlags accessFlags);
 
 	Type getType();
 

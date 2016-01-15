@@ -3,13 +3,7 @@ package me.nallar.jartransformer.api;
 import java.util.*;
 import java.util.function.*;
 
-public interface ClassEditor {
-	String getName();
-
-	AccessFlags getAccessFlags();
-
-	void setAccessFlags(AccessFlags accessFlags);
-
+public interface ClassInfo extends Named, Accessible {
 	void add(MethodInfo method);
 
 	void add(FieldInfo field);
