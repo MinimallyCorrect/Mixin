@@ -6,7 +6,7 @@ import me.nallar.jartransformer.internal.description.impl.MethodInfoImplementati
 
 import java.util.*;
 
-public interface MethodInfo extends DeclarationInfo {
+public interface MethodInfo extends Named, Accessible {
 	static MethodInfo of(AccessFlags accessFlags, String name, Type returnType, Parameter... parameters) {
 		return new MethodInfoImplementation(accessFlags, name, returnType, parameters);
 	}

@@ -2,11 +2,7 @@ package me.nallar.jartransformer.api;
 
 import java.util.function.*;
 
-public interface DeclarationInfo {
-	String getName();
-
-	void setName(String name);
-
+public interface Accessible {
 	AccessFlags getAccessFlags();
 
 	void setAccessFlags(AccessFlags accessFlags);

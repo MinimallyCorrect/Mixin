@@ -7,7 +7,7 @@ import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
 import lombok.val;
 import me.nallar.jartransformer.api.AccessFlags;
-import me.nallar.jartransformer.api.ClassEditor;
+import me.nallar.jartransformer.api.ClassInfo;
 import me.nallar.jartransformer.api.FieldInfo;
 import me.nallar.jartransformer.api.MethodInfo;
 import me.nallar.jartransformer.internal.description.Parameter;
@@ -17,12 +17,12 @@ import me.nallar.jartransformer.internal.util.JVMUtil;
 import java.util.*;
 import java.util.stream.*;
 
-public class SourceEditor implements ClassEditor {
+public class SourceInfo implements ClassInfo {
 	private final TypeDeclaration type;
 	private final Iterable<ImportDeclaration> imports;
 	private final PackageDeclaration packageDeclaration;
 
-	public SourceEditor(TypeDeclaration type, PackageDeclaration packageDeclaration, Iterable<ImportDeclaration> imports) {
+	public SourceInfo(TypeDeclaration type, PackageDeclaration packageDeclaration, Iterable<ImportDeclaration> imports) {
 		this.type = type;
 		this.packageDeclaration = packageDeclaration;
 		this.imports = imports;
@@ -31,6 +31,16 @@ public class SourceEditor implements ClassEditor {
 	@Override
 	public String getName() {
 		return packageDeclaration.getName().getName() + '.' + type.getName();
+	}
+
+	@Override
+	public void setName(String name) {
+		String packageName = packageDeclaration.getName().getName();
+		if (name.startsWith(packageName)) {
+			type.setName(name.replace(packageName, ""));
+		} else {
+			throw new RuntimeException("Name '" + name + "' must be in package: " + packageDeclaration);
+		}
 	}
 
 	@Override
@@ -133,7 +143,7 @@ public class SourceEditor implements ClassEditor {
 
 		@Override
 		public void setType(Type type) {
-			declaration.setType(SourceEditor.this.setType(type, declaration.getType()));
+			declaration.setType(SourceInfo.this.setType(type, declaration.getType()));
 		}
 	}
 

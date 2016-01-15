@@ -4,9 +4,9 @@ import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseException;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.TypeDeclaration;
-import me.nallar.jartransformer.api.ClassEditor;
-import me.nallar.jartransformer.internal.editor.asm.ByteCodeEditor;
-import me.nallar.jartransformer.internal.editor.javaparser.SourceEditor;
+import me.nallar.jartransformer.api.ClassInfo;
+import me.nallar.jartransformer.internal.editor.asm.ByteCodeInfo;
+import me.nallar.jartransformer.internal.editor.javaparser.SourceInfo;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
@@ -26,7 +26,7 @@ public abstract class JavaTransformer {
 	/**
 	 * @param editor editor instance associated with a class
 	 */
-	public abstract void transformClass(ClassEditor editor);
+	public abstract void transformClass(ClassInfo editor);
 
 	public byte[] transformJava(byte[] data, String name) {
 		if (!shouldTransformClass(name))
@@ -43,7 +43,7 @@ public abstract class JavaTransformer {
 		for (TypeDeclaration typeDeclaration : cu.getTypes()) {
 			String shortClassName = typeDeclaration.getName();
 			if ((packageName + '.' + shortClassName).equalsIgnoreCase(name)) {
-				transformClass(new SourceEditor(typeDeclaration, cu.getPackage(), cu.getImports()));
+				transformClass(new SourceInfo(typeDeclaration, cu.getPackage(), cu.getImports()));
 			}
 		}
 
@@ -58,7 +58,7 @@ public abstract class JavaTransformer {
 		ClassReader reader = new ClassReader(bytes);
 		reader.accept(node, ClassReader.EXPAND_FRAMES);
 
-		transformClass(new ByteCodeEditor(node));
+		transformClass(new ByteCodeInfo(node));
 
 		ClassWriter classWriter = new ClassWriter(reader, 0);
 		node.accept(classWriter);
