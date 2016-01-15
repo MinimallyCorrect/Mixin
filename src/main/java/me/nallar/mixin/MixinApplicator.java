@@ -7,31 +7,33 @@ import me.nallar.jartransformer.internal.util.JVMUtil;
 
 import java.util.*;
 
-public class MixinTransformer extends JarTransformer {
+public class MixinApplicator {
 	private final Map<String, PatchInfo> patchClasses = new HashMap<>();
 
-	private static void modifyDeclarations(DeclarationInfo declarationInfo, PatchInfo patchInfo) {
-		declarationInfo.accessFlags((f) -> f.without(AccessFlags.ACC_FINAL).makeAccessible(patchInfo.makePublic));
-	}
+	private class MixinTransformer extends JarTransformer {
+		@Override
+		public boolean shouldTransformClass(String name) {
+			return getPatchInfo(name) != null;
+		}
 
-	@Override
-	public boolean shouldTransformClass(String name) {
-		return getPatchInfo(name) != null;
-	}
+		@Override
+		public void transformClass(ClassEditor editor) {
+			val patchInfo = getPatchInfo(editor.getName());
 
-	@Override
-	public void transformClass(ClassEditor editor) {
-		val patchInfo = getPatchInfo(editor.getName());
+			editor.accessFlags((f) -> f.without(AccessFlags.ACC_FINAL).makeAccessible(true));
 
-		editor.accessFlags((f) -> f.without(AccessFlags.ACC_FINAL).makeAccessible(true));
+			// TODO patchInfo.exposeInners support - add methods for inner classes
+			editor.getFields().forEach(d -> modifyDeclarations(d, patchInfo));
+			editor.getMethods().forEach(d -> modifyDeclarations(d, patchInfo));
 
-		// TODO patchInfo.exposeInners support - add methods for inner classes
-		editor.getFields().forEach(d -> modifyDeclarations(d, patchInfo));
-		editor.getMethods().forEach(d -> modifyDeclarations(d, patchInfo));
+			patchInfo.fields.forEach(editor::add);
 
-		patchInfo.fields.forEach(editor::add);
+			patchInfo.methods.forEach(editor::add);
+		}
 
-		patchInfo.methods.forEach(editor::add);
+		private void modifyDeclarations(DeclarationInfo declarationInfo, PatchInfo patchInfo) {
+			declarationInfo.accessFlags((f) -> f.without(AccessFlags.ACC_FINAL).makeAccessible(patchInfo.makePublic));
+		}
 	}
 
 	private PatchInfo getOrMakePatchInfo(String className, String shortClassName) {
