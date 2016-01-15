@@ -7,7 +7,7 @@ import me.nallar.jartransformer.internal.util.JVMUtil;
 
 import java.util.*;
 
-public class MixinPrePatcher extends JarTransformer {
+public class MixinTransformer extends JarTransformer {
 	private final Map<String, PatchInfo> patchClasses = new HashMap<>();
 
 	private static void modifyDeclarations(DeclarationInfo declarationInfo, PatchInfo patchInfo) {
