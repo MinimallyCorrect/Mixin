@@ -6,12 +6,10 @@ import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
 import lombok.val;
-import me.nallar.jartransformer.api.AccessFlags;
-import me.nallar.jartransformer.api.ClassInfo;
-import me.nallar.jartransformer.api.FieldInfo;
-import me.nallar.jartransformer.api.MethodInfo;
+import me.nallar.jartransformer.api.*;
 import me.nallar.jartransformer.internal.description.Parameter;
 import me.nallar.jartransformer.internal.description.Type;
+import me.nallar.jartransformer.internal.util.AnnotationParser;
 import me.nallar.jartransformer.internal.util.JVMUtil;
 
 import java.util.*;
@@ -104,6 +102,11 @@ public class SourceInfo implements ClassInfo {
 				newType_.setAnnotations(annotations);
 		}
 		return newType_;
+	}
+
+	@Override
+	public List<Annotation> getAnnotations() {
+		return type.getAnnotations().stream().map((it) -> AnnotationParser.annotationFromAnnotationExpr(it, imports)).collect(Collectors.toList());
 	}
 
 	class FieldDeclarationWrapper implements FieldInfo {

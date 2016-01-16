@@ -1,13 +1,12 @@
 package me.nallar.jartransformer.internal.editor.asm;
 
 import lombok.val;
-import me.nallar.jartransformer.api.AccessFlags;
-import me.nallar.jartransformer.api.ClassInfo;
-import me.nallar.jartransformer.api.FieldInfo;
-import me.nallar.jartransformer.api.MethodInfo;
+import me.nallar.jartransformer.api.*;
 import me.nallar.jartransformer.internal.description.MethodDescriptor;
 import me.nallar.jartransformer.internal.description.Parameter;
 import me.nallar.jartransformer.internal.description.Type;
+import me.nallar.jartransformer.internal.util.AnnotationParser;
+import me.nallar.jartransformer.internal.util.CollectionUtil;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -65,6 +64,11 @@ public class ByteCodeInfo implements ClassInfo {
 	@Override
 	public List<FieldInfo> getFields() {
 		return node.fields.stream().map(FieldNodeInfo::new).collect(Collectors.toCollection(ArrayList::new));
+	}
+
+	@Override
+	public List<Annotation> getAnnotations() {
+		return CollectionUtil.union(node.invisibleAnnotations, node.visibleAnnotations).map(AnnotationParser::annotationFromAnnotationNode).collect(Collectors.toList());
 	}
 
 	static class FieldNodeInfo implements FieldInfo {

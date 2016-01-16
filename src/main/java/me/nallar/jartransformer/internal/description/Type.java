@@ -125,20 +125,29 @@ public class Type {
 	}
 
 	public static Type resolve(com.github.javaparser.ast.type.Type type, Iterable<ImportDeclaration> imports) {
+		return resolve(type.toStringWithoutComments().trim(), imports);
+	}
+
+	public static Type resolve(String name, Iterable<ImportDeclaration> imports) {
+		return new Type("L" + resolveName(name, imports) + ";");
+	}
+
+	private static String resolveName(String name, Iterable<ImportDeclaration> imports) {
 		// TODO: 13/01/2016 Handle generic types (ArrayList<Type> -> resolve Type, and ArrayList.)
 		// TODO: 13/01/2016
-
-		String name = type.toStringWithoutComments().trim();
 
 		for (ImportDeclaration anImport : imports) {
 			String importName = anImport.getName().getName();
 			if (importName.endsWith(name)) {
-				name = importName;
-				break;
+				return importName;
 			}
 		}
 
-		return new Type("L" + name + ";");
+		if (!name.contains(".") && !Objects.equals(System.getProperty("JarTransformer.allowDefaultPackage"), "true")) {
+			throw new RuntimeException("Couldn't resolve name: " + name);
+		}
+
+		return name;
 	}
 
 	public boolean isPrimitiveType() {
