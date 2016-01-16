@@ -1,9 +1,9 @@
 package me.nallar.mixin;
 
 import lombok.val;
-import me.nallar.jartransformer.JarTransformer;
-import me.nallar.jartransformer.api.*;
-import me.nallar.jartransformer.internal.util.JVMUtil;
+import me.nallar.javatransformer.JarTransformer;
+import me.nallar.javatransformer.api.*;
+import me.nallar.javatransformer.internal.util.JVMUtil;
 
 import java.util.*;
 
