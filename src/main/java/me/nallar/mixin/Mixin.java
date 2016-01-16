@@ -1,9 +1,6 @@
 package me.nallar.mixin;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Adding this annotation to a class marks it as a mixin
