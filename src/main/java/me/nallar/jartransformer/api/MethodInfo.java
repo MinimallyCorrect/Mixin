@@ -8,11 +8,11 @@ import java.util.*;
 
 public interface MethodInfo extends Named, Accessible {
 	static MethodInfo of(AccessFlags accessFlags, String name, Type returnType, Parameter... parameters) {
-		return new MethodInfoImplementation(accessFlags, name, returnType, parameters);
+		return of(accessFlags, name, returnType, Arrays.asList(parameters));
 	}
 
 	static MethodInfo of(AccessFlags accessFlags, String name, Type returnType, List<Parameter> parameters) {
-		return new MethodInfoImplementation(accessFlags, name, returnType, parameters);
+		return MethodInfoImplementation.of(accessFlags, name, returnType, parameters);
 	}
 
 	Type getReturnType();

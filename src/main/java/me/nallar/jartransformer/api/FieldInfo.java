@@ -5,7 +5,7 @@ import me.nallar.jartransformer.internal.description.impl.FieldInfoImplementatio
 
 public interface FieldInfo extends Named, Accessible {
 	static FieldInfo of(AccessFlags accessFlags, Type type, String name) {
-		return new FieldInfoImplementation(accessFlags, type, name);
+		return FieldInfoImplementation.of(accessFlags, type, name);
 	}
 
 	Type getType();
