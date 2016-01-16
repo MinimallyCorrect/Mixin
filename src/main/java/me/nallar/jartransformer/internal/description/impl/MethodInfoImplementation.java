@@ -15,15 +15,15 @@ public class MethodInfoImplementation implements MethodInfo {
 	public Type returnType;
 	public List<Parameter> parameters;
 
-	public MethodInfoImplementation(AccessFlags accessFlags, String name, Type returnType, Parameter... parameters) {
-		this(accessFlags, name, returnType, Arrays.asList(parameters));
-	}
-
-	public MethodInfoImplementation(AccessFlags accessFlags, String name, Type returnType, List<Parameter> parameters) {
+	private MethodInfoImplementation(AccessFlags accessFlags, String name, Type returnType, List<Parameter> parameters) {
 		this.accessFlags = accessFlags;
 		this.name = name;
 		this.returnType = returnType;
 		this.parameters = new ArrayList<>(parameters);
+	}
+
+	public static MethodInfo of(AccessFlags accessFlags, String name, Type returnType, List<Parameter> parameters) {
+		return new MethodInfoImplementation(accessFlags, name, returnType, parameters);
 	}
 
 	public List<Parameter> getParameters() {

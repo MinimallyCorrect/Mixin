@@ -17,6 +17,10 @@ public class FieldInfoImplementation implements FieldInfo {
 		this.name = name;
 	}
 
+	public static FieldInfo of(AccessFlags accessFlags, Type type, String name) {
+		return new FieldInfoImplementation(accessFlags, type, name);
+	}
+
 	@Override
 	public String toString() {
 		return accessFlags.toString() + ' ' + type + ' ' + name;
