@@ -44,16 +44,50 @@ public class ByteCodeInfo implements ClassInfo {
 	@Override
 	public void add(MethodInfo method) {
 		MethodNode node = new MethodNode();
-		MethodInfo info = MethodNodeInfo.wrap(node);
-		info.setAll(method);
+		if (method instanceof MethodNodeInfo) {
+			val other = ((MethodNodeInfo) method).node;
+			node.desc = other.desc;
+			node.signature = other.signature;
+			node.access = other.access;
+			node.name = other.name;
+			node.attrs = other.attrs;
+			node.annotationDefault = other.annotationDefault;
+			node.exceptions = other.exceptions;
+			node.instructions = other.instructions;
+			node.invisibleAnnotations = other.invisibleAnnotations;
+			node.invisibleLocalVariableAnnotations = other.invisibleLocalVariableAnnotations;
+			node.invisibleParameterAnnotations = other.invisibleParameterAnnotations;
+			node.invisibleTypeAnnotations = other.invisibleTypeAnnotations;
+			node.visibleAnnotations = other.visibleAnnotations;
+			node.visibleLocalVariableAnnotations = other.visibleLocalVariableAnnotations;
+			node.visibleParameterAnnotations = other.visibleParameterAnnotations;
+			node.visibleTypeAnnotations = other.visibleTypeAnnotations;
+			node.localVariables = other.localVariables;
+			node.tryCatchBlocks = other.tryCatchBlocks;
+		} else {
+			MethodInfo info = MethodNodeInfo.wrap(node);
+			info.setAll(method);
+		}
 		this.node.methods.add(node);
 	}
 
 	@Override
 	public void add(FieldInfo field) {
-		val node = new FieldNode(0, null, null, null, null);
-		val nodeInfo = new FieldNodeInfo(node);
-		nodeInfo.setAll(field);
+		FieldNode node;
+		if (field instanceof FieldNodeInfo) {
+			val other = ((FieldNodeInfo) field).node;
+			node = new FieldNode(other.access, other.name, other.desc, other.signature, other.value);
+			node.attrs = other.attrs;
+			node.invisibleAnnotations = other.invisibleAnnotations;
+			node.invisibleTypeAnnotations = other.invisibleTypeAnnotations;
+			node.visibleAnnotations = other.visibleAnnotations;
+			node.visibleTypeAnnotations = other.visibleTypeAnnotations;
+		} else {
+			node = new FieldNode(0, null, null, null, null);
+			val nodeInfo = new FieldNodeInfo(node);
+			nodeInfo.setAll(field);
+		}
+		this.node.fields.add(node);
 	}
 
 	@Override
@@ -72,7 +106,7 @@ public class ByteCodeInfo implements ClassInfo {
 	}
 
 	static class FieldNodeInfo implements FieldInfo {
-		private final FieldNode node;
+		public final FieldNode node;
 		private Type type;
 
 		FieldNodeInfo(FieldNode node) {
