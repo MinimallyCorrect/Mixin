@@ -3,6 +3,7 @@ package me.nallar.javatransformer.internal.editor.javaparser;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.*;
+import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
 import lombok.val;
@@ -106,7 +107,11 @@ public class SourceInfo implements ClassInfo {
 
 	@Override
 	public List<Annotation> getAnnotations() {
-		return type.getAnnotations().stream().map((it) -> AnnotationParser.annotationFromAnnotationExpr(it, imports)).collect(Collectors.toList());
+		return getAnnotations(type.getAnnotations());
+	}
+
+	private List<Annotation> getAnnotations(List<AnnotationExpr> l) {
+		return l.stream().map((it) -> AnnotationParser.annotationFromAnnotationExpr(it, imports)).collect(Collectors.toList());
 	}
 
 	class FieldDeclarationWrapper implements FieldInfo {
@@ -147,6 +152,11 @@ public class SourceInfo implements ClassInfo {
 		@Override
 		public void setType(Type type) {
 			declaration.setType(SourceInfo.this.setType(type, declaration.getType()));
+		}
+
+		@Override
+		public List<Annotation> getAnnotations() {
+			return SourceInfo.this.getAnnotations(declaration.getAnnotations());
 		}
 	}
 
@@ -195,6 +205,11 @@ public class SourceInfo implements ClassInfo {
 		@Override
 		public void setAccessFlags(AccessFlags accessFlags) {
 			declaration.setModifiers(accessFlags.access);
+		}
+
+		@Override
+		public List<Annotation> getAnnotations() {
+			return SourceInfo.this.getAnnotations(declaration.getAnnotations());
 		}
 	}
 }

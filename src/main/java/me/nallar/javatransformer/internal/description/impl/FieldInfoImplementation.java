@@ -2,14 +2,18 @@ package me.nallar.javatransformer.internal.description.impl;
 
 import lombok.Data;
 import me.nallar.javatransformer.api.AccessFlags;
+import me.nallar.javatransformer.api.Annotation;
 import me.nallar.javatransformer.api.FieldInfo;
 import me.nallar.javatransformer.internal.description.Type;
+
+import java.util.*;
 
 @Data
 public class FieldInfoImplementation implements FieldInfo {
 	public AccessFlags accessFlags;
 	public String name;
 	public Type type;
+	public List<Annotation> annotations;
 
 	public FieldInfoImplementation(AccessFlags accessFlags, Type type, String name) {
 		this.accessFlags = accessFlags;
