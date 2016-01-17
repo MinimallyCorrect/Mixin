@@ -145,6 +145,11 @@ public class ByteCodeInfo implements ClassInfo {
 			node.desc = type.real;
 			node.signature = type.generic;
 		}
+
+		@Override
+		public List<Annotation> getAnnotations() {
+			return CollectionUtil.union(node.invisibleAnnotations, node.visibleAnnotations).map(AnnotationParser::annotationFromAnnotationNode).collect(Collectors.toList());
+		}
 	}
 
 	static class MethodNodeInfo implements MethodInfo {
@@ -205,6 +210,11 @@ public class ByteCodeInfo implements ClassInfo {
 
 		public String getDescriptor() {
 			return descriptor.getDescriptor();
+		}
+
+		@Override
+		public List<Annotation> getAnnotations() {
+			return CollectionUtil.union(node.invisibleAnnotations, node.visibleAnnotations).map(AnnotationParser::annotationFromAnnotationNode).collect(Collectors.toList());
 		}
 	}
 }

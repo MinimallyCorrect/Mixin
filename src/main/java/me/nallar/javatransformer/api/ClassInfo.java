@@ -3,7 +3,7 @@ package me.nallar.javatransformer.api;
 import java.util.*;
 import java.util.function.*;
 
-public interface ClassInfo extends Named, Accessible, Annotated {
+public interface ClassInfo extends Accessible, Annotated, Named {
 	void add(MethodInfo method);
 
 	void add(FieldInfo field);
