@@ -3,6 +3,7 @@ package me.nallar.javatransformer.internal.description.impl;
 import lombok.Data;
 import me.nallar.javatransformer.api.AccessFlags;
 import me.nallar.javatransformer.api.Annotation;
+import me.nallar.javatransformer.api.ClassInfo;
 import me.nallar.javatransformer.api.FieldInfo;
 import me.nallar.javatransformer.internal.description.Type;
 
@@ -28,5 +29,10 @@ public class FieldInfoImplementation implements FieldInfo {
 	@Override
 	public String toString() {
 		return accessFlags.toString() + ' ' + type + ' ' + name;
+	}
+
+	@Override
+	public ClassInfo getClassInfo() {
+		return null;
 	}
 }

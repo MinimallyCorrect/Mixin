@@ -114,6 +114,11 @@ public class SourceInfo implements ClassInfo {
 		return l.stream().map((it) -> AnnotationParser.annotationFromAnnotationExpr(it, imports)).collect(Collectors.toList());
 	}
 
+	@Override
+	public ClassInfo getClassInfo() {
+		return SourceInfo.this;
+	}
+
 	class FieldDeclarationWrapper implements FieldInfo {
 		private final FieldDeclaration declaration;
 
@@ -157,6 +162,11 @@ public class SourceInfo implements ClassInfo {
 		@Override
 		public List<Annotation> getAnnotations() {
 			return SourceInfo.this.getAnnotations(declaration.getAnnotations());
+		}
+
+		@Override
+		public ClassInfo getClassInfo() {
+			return SourceInfo.this;
 		}
 	}
 
@@ -210,6 +220,11 @@ public class SourceInfo implements ClassInfo {
 		@Override
 		public List<Annotation> getAnnotations() {
 			return SourceInfo.this.getAnnotations(declaration.getAnnotations());
+		}
+
+		@Override
+		public ClassInfo getClassInfo() {
+			return SourceInfo.this;
 		}
 	}
 }
