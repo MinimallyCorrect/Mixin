@@ -3,6 +3,7 @@ package me.nallar.javatransformer.internal.description.impl;
 import lombok.Data;
 import me.nallar.javatransformer.api.AccessFlags;
 import me.nallar.javatransformer.api.Annotation;
+import me.nallar.javatransformer.api.ClassInfo;
 import me.nallar.javatransformer.api.MethodInfo;
 import me.nallar.javatransformer.internal.description.Parameter;
 import me.nallar.javatransformer.internal.description.Type;
@@ -30,5 +31,10 @@ public class MethodInfoImplementation implements MethodInfo {
 
 	public List<Parameter> getParameters() {
 		return Collections.unmodifiableList(parameters);
+	}
+
+	@Override
+	public ClassInfo getClassInfo() {
+		return null;
 	}
 }

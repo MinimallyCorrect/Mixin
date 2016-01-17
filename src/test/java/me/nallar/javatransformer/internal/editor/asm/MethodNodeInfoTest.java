@@ -2,6 +2,7 @@ package me.nallar.javatransformer.internal.editor.asm;
 
 import lombok.val;
 import me.nallar.javatransformer.api.AccessFlags;
+import me.nallar.javatransformer.api.MethodInfo;
 import me.nallar.javatransformer.internal.description.Parameter;
 import me.nallar.javatransformer.internal.description.Type;
 import org.junit.Assert;
@@ -16,7 +17,8 @@ public class MethodNodeInfoTest {
 		node.name = "test";
 		node.desc = "()Ljava/lang/String;";
 
-		val info = ByteCodeInfo.MethodNodeInfo.wrap(node);
+		ByteCodeInfo b = new ByteCodeInfo(null);
+		MethodInfo info = b.wrap(node);
 
 		Assert.assertEquals("test", info.getName());
 		Assert.assertEquals("java.lang.String", info.getReturnType().getClassName());

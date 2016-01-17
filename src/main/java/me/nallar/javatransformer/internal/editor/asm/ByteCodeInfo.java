@@ -65,7 +65,7 @@ public class ByteCodeInfo implements ClassInfo {
 			node.localVariables = other.localVariables;
 			node.tryCatchBlocks = other.tryCatchBlocks;
 		} else {
-			MethodInfo info = MethodNodeInfo.wrap(node);
+			MethodInfo info = new MethodNodeInfo(node);
 			info.setAll(method);
 		}
 		this.node.methods.add(node);
@@ -105,7 +105,16 @@ public class ByteCodeInfo implements ClassInfo {
 		return CollectionUtil.union(node.invisibleAnnotations, node.visibleAnnotations).map(AnnotationParser::annotationFromAnnotationNode).collect(Collectors.toList());
 	}
 
-	static class FieldNodeInfo implements FieldInfo {
+	@Override
+	public ClassInfo getClassInfo() {
+		return this;
+	}
+
+	MethodInfo wrap(MethodNode node) {
+		return new MethodNodeInfo(node);
+	}
+
+	class FieldNodeInfo implements FieldInfo {
 		public final FieldNode node;
 		private Type type;
 
@@ -150,19 +159,20 @@ public class ByteCodeInfo implements ClassInfo {
 		public List<Annotation> getAnnotations() {
 			return CollectionUtil.union(node.invisibleAnnotations, node.visibleAnnotations).map(AnnotationParser::annotationFromAnnotationNode).collect(Collectors.toList());
 		}
+
+		@Override
+		public ClassInfo getClassInfo() {
+			return ByteCodeInfo.this;
+		}
 	}
 
-	static class MethodNodeInfo implements MethodInfo {
+	class MethodNodeInfo implements MethodInfo {
 		private final MethodNode node;
 		private MethodDescriptor descriptor;
 
-		private MethodNodeInfo(MethodNode node) {
+		MethodNodeInfo(MethodNode node) {
 			this.node = node;
 			descriptor = new MethodDescriptor(node.desc, node.signature);
-		}
-
-		public static MethodInfo wrap(MethodNode node) {
-			return new MethodNodeInfo(node);
 		}
 
 		@Override
@@ -215,6 +225,11 @@ public class ByteCodeInfo implements ClassInfo {
 		@Override
 		public List<Annotation> getAnnotations() {
 			return CollectionUtil.union(node.invisibleAnnotations, node.visibleAnnotations).map(AnnotationParser::annotationFromAnnotationNode).collect(Collectors.toList());
+		}
+
+		@Override
+		public ClassInfo getClassInfo() {
+			return ByteCodeInfo.this;
 		}
 	}
 }
