@@ -134,7 +134,6 @@ public class Type {
 
 	private static String resolveName(String name, Iterable<ImportDeclaration> imports) {
 		// TODO: 13/01/2016 Handle generic types (ArrayList<Type> -> resolve Type, and ArrayList.)
-		// TODO: 13/01/2016
 
 		for (ImportDeclaration anImport : imports) {
 			String importName = anImport.getName().getName();
