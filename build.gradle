@@ -27,6 +27,7 @@ tasks.withType(JavaCompile) {
 
 repositories {
 	jcenter()
+	maven { url='http://repo.nallar.me/' }
 }
 
 configurations {
@@ -36,6 +37,7 @@ configurations {
 
 dependencies {
 	testCompile "junit:junit:4.12"
+	provided 'me.nallar:JavaTransformer:1.0-SNAPSHOT'
 	provided 'org.projectlombok:lombok:1.16.4'
 	provided 'org.ow2.asm:asm-debug-all:5.0.4'
 	provided 'com.github.javaparser:javaparser-core:2.3.0'
