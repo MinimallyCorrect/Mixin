@@ -33,6 +33,13 @@ repositories {
 configurations {
 	provided
 	compile.extendsFrom provided
+	all {
+		resolutionStrategy {
+			failOnVersionConflict()
+
+			cacheChangingModulesFor 10, 'seconds'
+		}
+	}
 }
 
 dependencies {
