@@ -1,65 +1,54 @@
 package me.nallar.mixin.internal;
 
-import java.io.*;
+import lombok.Data;
+import lombok.val;
+import me.nallar.javatransformer.api.Annotation;
+import me.nallar.javatransformer.api.ClassInfo;
 
+import java.nio.file.*;
+import java.util.*;
+import java.util.stream.*;
+
+@Data
 public class MixinApplicator {
-	public MixinApplicator(File targetJar, File mixinSource) {
+	private final Path targetJar;
+	private final Path mixinSource;
+	private boolean noMixinIsError = false;
 
+	public MixinApplicator(Path targetJar, Path mixinSource) {
+		this.targetJar = targetJar;
+		this.mixinSource = mixinSource;
 	}
 
 	public static void main(String[] args) {
 
 	}
 
-	// TODO: 17/01/2016 Make this work. :p
-	/*
-	private void handleAnnotation(Annotation a, ClassMember member) {
-		String annotationName = a.getType().getClassName();
+	private void handleAnnotations(ClassInfo info) {
+		List<Annotation> mixins = info.getAnnotations().stream()
+			.filter((it) -> it.getType().getClassName().equals(Names.MIXIN_FULL))
+			.collect(Collectors.toList());
 
-		if (!annotationName.startsWith("me.nallar.mixin")) {
-			// Unrelated annotation
-			return;
-		}
+		if (mixins.size() == 0)
+			if (noMixinIsError) throw new RuntimeException("Class " + info.getName() + " is not an @Mixin");
+			else return;
 
-		annotationName = annotationName.substring(16);
-		String className = member.getClassInfo().getName();
+		if (mixins.size() > 1)
+			throw new RuntimeException(info.getName() + " can not use @Mixin multiple times");
 
-		switch (annotationName) {
-			case "Mixin":
-				patches.put(className, (classMember) -> handleMixin);
-				handleMixin(a, member.getClassInfo());
+		val mixin = mixins.get(0);
+		String target = (String) mixin.values.get("target");
 
-			default:
-				throw new RuntimeException("Unknown mixin annotation: " + a.getType());
+		if (target == null || target.isEmpty()) {
+			target = info.getSuperType().getClassName();
 		}
 	}
 
-	private void handleMixin(Annotation a, ClassInfo classInfo) {
+	public static class Names {
+		public static String PACKAGE = "me.nallar.mixin.";
+		public static String MIXIN = "Mixin";
+		public static String NEW = "New";
 
+		public static String MIXIN_FULL = PACKAGE + MIXIN;
 	}
-
-	@Override
-	public boolean shouldTransformClass(String name) {
-		return getPatchInfo(name) != null;
-	}
-
-	@Override
-	public void transformClass(ClassInfo editor) {
-		val patchInfo = getPatchInfo(editor.getName());
-
-		editor.accessFlags((f) -> f.without(AccessFlags.ACC_FINAL).makeAccessible(true));
-
-		// TODO patchInfo.exposeInners support - add methods for inner classes
-		editor.getFields().forEach(d -> modifyDeclarations(d, patchInfo));
-		editor.getMethods().forEach(d -> modifyDeclarations(d, patchInfo));
-
-		patchInfo.fields.forEach(editor::add);
-
-		patchInfo.methods.forEach(editor::add);
-	}
-
-	private void modifyDeclarations(Accessible accessible, PatchInfo patchInfo) {
-		accessible.accessFlags((f) -> f.without(AccessFlags.ACC_FINAL).makeAccessible(patchInfo.makePublic));
-	}
-	*/
 }
