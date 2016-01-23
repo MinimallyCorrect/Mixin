@@ -1,6 +1,7 @@
 package me.nallar.mixin.internal;
 
 import lombok.Data;
+import lombok.NonNull;
 import lombok.val;
 import me.nallar.javatransformer.api.Annotation;
 import me.nallar.javatransformer.api.ClassInfo;
@@ -11,7 +12,9 @@ import java.util.stream.*;
 
 @Data
 public class MixinApplicator {
+	@NonNull
 	private final Path targetJar;
+	@NonNull
 	private final Path mixinSource;
 	private boolean noMixinIsError = false;
 
