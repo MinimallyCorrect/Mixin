@@ -50,9 +50,10 @@ dependencies {
 	provided 'com.github.javaparser:javaparser-core:2.3.0'
 }
 
-compileJava {
+tasks.withType(JavaCompile) {
 	sourceCompatibility = 8
 	targetCompatibility = 8
+	options.compilerArgs << "-Xlint:all" << "-Xlint:-processing"
 }
 
 jar {
