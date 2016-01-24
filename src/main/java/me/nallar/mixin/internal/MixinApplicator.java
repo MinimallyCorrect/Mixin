@@ -28,9 +28,7 @@ public class MixinApplicator {
 	}
 
 	private void handleAnnotations(ClassInfo info) {
-		List<Annotation> mixins = info.getAnnotations().stream()
-			.filter((it) -> it.getType().getClassName().equals(Names.MIXIN_FULL))
-			.collect(Collectors.toList());
+		List<Annotation> mixins = info.getAnnotations(Names.MIXIN_FULL);
 
 		if (mixins.size() == 0)
 			if (noMixinIsError) throw new RuntimeException("Class " + info.getName() + " is not an @Mixin");
