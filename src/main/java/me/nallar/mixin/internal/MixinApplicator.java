@@ -3,20 +3,25 @@ package me.nallar.mixin.internal;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.val;
-import me.nallar.javatransformer.api.Annotated;
 import me.nallar.javatransformer.api.Annotation;
 import me.nallar.javatransformer.api.ClassInfo;
-import me.nallar.javatransformer.api.MethodInfo;
+import me.nallar.javatransformer.api.ClassMember;
 
 import java.nio.file.*;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.*;
 import java.util.stream.*;
 
 @Data
 public class MixinApplicator {
-	private static Map<String, Consumer<Annotated>> consumerMap = new HashMap<>();
+	private static Map<String, AnnotationApplier> consumerMap = new HashMap<>();
+
+	static {
+		addAnnotationHandler(Names.ADD_FULL, (annotation, member, target) -> {
+			target.add(member);
+		});
+	}
+
 	@NonNull
 	private final Path targetJar;
 	@NonNull
@@ -32,18 +37,28 @@ public class MixinApplicator {
 
 	}
 
-	static {
-		addAnnotationHandler("New", x -> {
-			// TODO: 24/01/2016
-		});
+	@SuppressWarnings("unchecked")
+	private static void addAnnotationHandler(String name, AnnotationApplier methodInfoConsumer) {
+		consumerMap.put(name, methodInfoConsumer);
 	}
 
-	private void handleAnnotations(ClassInfo clazz) {
+	private static Stream<Consumer<ClassInfo>> handleAnnotation(ClassMember annotated) {
+		return annotated.getAnnotations().stream().map(annotation -> {
+			AnnotationApplier applier = consumerMap.get(annotation.type.getClassName());
+			if (applier == null)
+				return null;
+
+			return (Consumer<ClassInfo>) (target) -> applier.apply(annotation, annotated, target);
+		}).filter(Objects::nonNull);
+	}
+
+	private Consumer<ClassInfo> processMixinSource(ClassInfo clazz) {
 		List<Annotation> mixins = clazz.getAnnotations(Names.MIXIN_FULL);
 
 		if (mixins.size() == 0)
 			if (noMixinIsError) throw new RuntimeException("Class " + clazz.getName() + " is not an @Mixin");
-			else return;
+			else return x -> {
+			};
 
 		if (mixins.size() > 1)
 			throw new RuntimeException(clazz.getName() + " can not use @Mixin multiple times");
@@ -55,22 +70,20 @@ public class MixinApplicator {
 			target = clazz.getSuperType().getClassName();
 		}
 
-		logInfo("Found Mixin class '" + clazz.getName() + "' targeting class '" + target);
-		clazz.getMethods().forEach(MixinApplicator::handleAnnotation);
-	}
+		List<Consumer<ClassInfo>> applicators = clazz.getMembers().stream().flatMap(MixinApplicator::handleAnnotation).collect(Collectors.toList());
 
-	@SuppressWarnings("unchecked")
-	private static void addAnnotationHandler(String name, Consumer<? extends Annotated> methodInfoConsumer) {
-		consumerMap.put(name, (Consumer<Annotated>) methodInfoConsumer);
-	}
+		logInfo("Found Mixin class '" + clazz.getName() + "' targeting class '" + target + " with " + applicators.size() + " applicators.");
 
-	private static void handleAnnotation(Annotated annotated) {
-		annotated.getAnnotations().forEach(annotation -> Optional.of(consumerMap.get(annotation.type.getClassName())).ifPresent(x -> x.accept(annotated)));
+		return classInfo -> applicators.forEach(applicator -> applicator.accept(classInfo));
 	}
 
 	private void logInfo(String s) {
-		// TODO: 24/01/2016 Call
+		// TODO: 24/01/2016 Proper logging
 		System.out.println(s);
+	}
+
+	private interface AnnotationApplier {
+		void apply(Annotation annotation, ClassMember annotatedMember, ClassInfo mixinTarget);
 	}
 
 	public static class Names {
@@ -80,9 +93,5 @@ public class MixinApplicator {
 
 		public static String ADD_FULL = PACKAGE + ADD;
 		public static String MIXIN_FULL = PACKAGE + MIXIN;
-	}
-
-	private interface AnnotationApplier {
-		public void apply(Annotation a, Annotated annotatedNode, ClassInfo mixinSource, ClassInfo mixinTarget);
 	}
 }
