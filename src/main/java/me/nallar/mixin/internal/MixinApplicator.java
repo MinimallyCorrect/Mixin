@@ -47,9 +47,10 @@ public class MixinApplicator {
 
 	public static class Names {
 		public static String PACKAGE = "me.nallar.mixin.";
+		public static String ADD = "Add";
 		public static String MIXIN = "Mixin";
-		public static String NEW = "New";
 
+		public static String ADD_FULL = PACKAGE + ADD;
 		public static String MIXIN_FULL = PACKAGE + MIXIN;
 	}
 }
