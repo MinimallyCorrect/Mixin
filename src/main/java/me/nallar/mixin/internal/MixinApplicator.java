@@ -67,11 +67,10 @@ public class MixinApplicator {
 
 	public JavaTransformer getMixinTransformer(Path mixinSource) {
 		JavaTransformer transformer = new JavaTransformer();
+
 		val transformers = new ArrayList<Transformer.TargetedTransformer>();
-		transformer.addTransformer(classInfo -> {
-			Optional.ofNullable(processMixinSource(classInfo)).ifPresent(transformers::add);
-		});
-		transformer.load(mixinSource, false);
+		transformer.addTransformer(classInfo -> Optional.ofNullable(processMixinSource(classInfo)).ifPresent(transformers::add));
+		transformer.parse(mixinSource);
 
 		transformer = new JavaTransformer();
 		transformers.forEach(transformer::addTransformer);
