@@ -4,6 +4,8 @@ import lombok.Data;
 import lombok.val;
 import me.nallar.javatransformer.api.*;
 
+import java.io.*;
+import java.net.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
@@ -65,11 +67,37 @@ public class MixinApplicator {
 		}).filter(Objects::nonNull);
 	}
 
+	private static Path getPathFromClass(Class mixinSource) {
+		try {
+			return Paths.get(mixinSource.getProtectionDomain().getCodeSource().getLocation().toURI());
+		} catch (URISyntaxException e) {
+			throw new IOError(e);
+		}
+	}
+
+	public JavaTransformer getMixinTransformer(Class mixinSource) {
+		return getMixinTransformer(getPathFromClass(mixinSource), mixinSource.getPackage().getName());
+	}
+
 	public JavaTransformer getMixinTransformer(Path mixinSource) {
+		return getMixinTransformer(mixinSource, null);
+	}
+
+	protected JavaTransformer getMixinTransformer(Path mixinSource, String packageName) {
 		JavaTransformer transformer = new JavaTransformer();
 
 		val transformers = new ArrayList<Transformer.TargetedTransformer>();
-		transformer.addTransformer(classInfo -> Optional.ofNullable(processMixinSource(classInfo)).ifPresent(transformers::add));
+		transformer.addTransformer(new Transformer() {
+			@Override
+			public boolean shouldTransform(String name) {
+				return packageName == null || name.startsWith(packageName);
+			}
+
+			@Override
+			public void transform(ClassInfo classInfo) {
+				Optional.ofNullable(MixinApplicator.this.processMixinSource(classInfo)).ifPresent(transformers::add);
+			}
+		});
 		transformer.parse(mixinSource);
 
 		transformer = new JavaTransformer();
