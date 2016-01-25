@@ -1,11 +1,8 @@
 package me.nallar.mixin.internal;
 
 import lombok.Data;
-import lombok.NonNull;
 import lombok.val;
-import me.nallar.javatransformer.api.Annotation;
-import me.nallar.javatransformer.api.ClassInfo;
-import me.nallar.javatransformer.api.ClassMember;
+import me.nallar.javatransformer.api.*;
 
 import java.nio.file.*;
 import java.util.*;
@@ -14,37 +11,53 @@ import java.util.stream.*;
 
 @Data
 public class MixinApplicator {
-	private static Map<String, AnnotationApplier> consumerMap = new HashMap<>();
+	private static final Map<String, AnnotationApplier<? extends ClassMember>> consumerMap = new HashMap<>();
 
 	static {
-		addAnnotationHandler(Names.ADD_FULL, (annotation, member, target) -> {
+		addAnnotationHandler((annotation, member, target) -> target.add(member), "Add");
+
+		addAnnotationHandler(MethodInfo.class, (annotation, member, target) -> {
+			MethodInfo existing = target.get(member);
+
+			if (existing == null) {
+				throw new MixinError("Can't override method " + member + " as it does not exist in target: " + target);
+			}
+
+			target.remove(existing);
 			target.add(member);
-		});
+		}, "java.lang.Override", "OverrideStatic");
 	}
 
-	@NonNull
-	private final Path targetJar;
-	@NonNull
-	private final Path mixinSource;
 	private boolean noMixinIsError = false;
 
-	public MixinApplicator(Path targetJar, Path mixinSource) {
-		this.targetJar = targetJar;
-		this.mixinSource = mixinSource;
-	}
+	@SuppressWarnings({"unchecked"})
+	private static void addAnnotationHandler(AnnotationApplier<?> methodInfoConsumer, String... names) {
+		if (names.length == 0)
+			throw new IllegalArgumentException("Must provide at least one name");
 
-	public static void main(String[] args) {
-
+		for (String name : names) {
+			if (!name.contains(".")) {
+				name = "me.nallar.mixin." + name;
+			}
+			consumerMap.put(name, methodInfoConsumer);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
-	private static void addAnnotationHandler(String name, AnnotationApplier methodInfoConsumer) {
-		consumerMap.put(name, methodInfoConsumer);
+	private static <T extends ClassMember> void addAnnotationHandler(Class<T> clazz, AnnotationApplier<T> methodInfoConsumer, String... names) {
+		AnnotationApplier<?> applier = (annotation, annotated, target) -> {
+			if (clazz.isAssignableFrom(clazz)) {
+				methodInfoConsumer.apply(annotation, (T) annotated, target);
+			}
+			// TODO else log warning here?
+		};
+		addAnnotationHandler(applier, names);
 	}
 
 	private static Stream<Consumer<ClassInfo>> handleAnnotation(ClassMember annotated) {
 		return annotated.getAnnotations().stream().map(annotation -> {
-			AnnotationApplier applier = consumerMap.get(annotation.type.getClassName());
+			@SuppressWarnings("unchecked")
+			AnnotationApplier<ClassMember> applier = (AnnotationApplier<ClassMember>) consumerMap.get(annotation.type.getClassName());
 			if (applier == null)
 				return null;
 
@@ -52,13 +65,25 @@ public class MixinApplicator {
 		}).filter(Objects::nonNull);
 	}
 
-	private Consumer<ClassInfo> processMixinSource(ClassInfo clazz) {
-		List<Annotation> mixins = clazz.getAnnotations(Names.MIXIN_FULL);
+	public JavaTransformer getMixinTransformer(Path mixinSource) {
+		JavaTransformer transformer = new JavaTransformer();
+		val transformers = new ArrayList<Transformer.TargetedTransformer>();
+		transformer.addTransformer(classInfo -> {
+			Optional.ofNullable(processMixinSource(classInfo)).ifPresent(transformers::add);
+		});
+		transformer.load(mixinSource, false);
+
+		transformer = new JavaTransformer();
+		transformers.forEach(transformer::addTransformer);
+		return transformer;
+	}
+
+	private Transformer.TargetedTransformer processMixinSource(ClassInfo clazz) {
+		List<Annotation> mixins = clazz.getAnnotations("me.nallar.mixin.Mixin");
 
 		if (mixins.size() == 0)
 			if (noMixinIsError) throw new RuntimeException("Class " + clazz.getName() + " is not an @Mixin");
-			else return x -> {
-			};
+			else return null;
 
 		if (mixins.size() > 1)
 			throw new RuntimeException(clazz.getName() + " can not use @Mixin multiple times");
@@ -74,7 +99,18 @@ public class MixinApplicator {
 
 		logInfo("Found Mixin class '" + clazz.getName() + "' targeting class '" + target + " with " + applicators.size() + " applicators.");
 
-		return classInfo -> applicators.forEach(applicator -> applicator.accept(classInfo));
+		final String finalTarget = target;
+		return new Transformer.TargetedTransformer() {
+			@Override
+			public Collection<String> getTargetClasses() {
+				return Collections.singletonList(finalTarget);
+			}
+
+			@Override
+			public void transform(ClassInfo classInfo) {
+				applicators.forEach(applicator -> applicator.accept(classInfo));
+			}
+		};
 	}
 
 	private void logInfo(String s) {
@@ -82,16 +118,7 @@ public class MixinApplicator {
 		System.out.println(s);
 	}
 
-	private interface AnnotationApplier {
-		void apply(Annotation annotation, ClassMember annotatedMember, ClassInfo mixinTarget);
-	}
-
-	public static class Names {
-		public static String PACKAGE = "me.nallar.mixin.";
-		public static String ADD = "Add";
-		public static String MIXIN = "Mixin";
-
-		public static String ADD_FULL = PACKAGE + ADD;
-		public static String MIXIN_FULL = PACKAGE + MIXIN;
+	private interface AnnotationApplier<T extends ClassMember> {
+		void apply(Annotation annotation, T annotatedMember, ClassInfo mixinTarget);
 	}
 }
