@@ -73,7 +73,7 @@ public class MixinApplicator {
 		return getMixinTransformer(mixinSource, null);
 	}
 
-	protected JavaTransformer getMixinTransformer(Path mixinSource, String packageName) {
+	public JavaTransformer getMixinTransformer(Path mixinSource, String packageName) {
 		JavaTransformer transformer = new JavaTransformer();
 
 		val transformers = new ArrayList<Transformer.TargetedTransformer>();
