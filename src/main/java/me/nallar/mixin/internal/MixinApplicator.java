@@ -99,13 +99,17 @@ public class MixinApplicator {
 			else return null;
 
 		if (mixins.size() > 1)
-			throw new RuntimeException(clazz.getName() + " can not use @Mixin multiple times");
+			throw new MixinError(clazz.getName() + " can not use @Mixin multiple times");
 
 		val mixin = mixins.get(0);
 		String target = (String) mixin.values.get("target");
 
 		if (target == null || target.isEmpty()) {
 			target = clazz.getSuperType().getClassName();
+		}
+
+		if (!clazz.getAccessFlags().has(AccessFlags.ACC_ABSTRACT)) {
+			throw new MixinError(clazz.getName() + " must be abstract to use @Mixin");
 		}
 
 		List<Consumer<ClassInfo>> applicators = clazz.getMembers().stream().flatMap(MixinApplicator::handleAnnotation).collect(Collectors.toList());
