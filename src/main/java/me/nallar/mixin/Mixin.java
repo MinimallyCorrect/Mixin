@@ -12,4 +12,6 @@ public @interface Mixin {
 	 * By default, the target is set to the super-class. You may also specify the target class name.
 	 */
 	String target() default "";
+
+	boolean makePublic() default false;
 }
