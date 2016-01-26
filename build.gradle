@@ -1,7 +1,6 @@
 plugins {
 	id 'java'
 	id 'maven'
-	id 'nebula.provided-base' version '3.0.3'
 }
 project.version = '1.0-SNAPSHOT'
 project.group = 'me.nallar'
@@ -35,11 +34,15 @@ repositories {
 	maven { url='http://repo.nallar.me/' }
 }
 
-configurations.all {
-	resolutionStrategy {
-		failOnVersionConflict()
+configurations {
+	provided
+	compile.extendsFrom provided
+	all {
+		resolutionStrategy {
+			failOnVersionConflict()
 
-		cacheChangingModulesFor 10, 'seconds'
+			cacheChangingModulesFor 10, 'seconds'
+		}
 	}
 }
 
