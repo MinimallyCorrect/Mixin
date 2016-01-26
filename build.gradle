@@ -20,9 +20,13 @@ ext.commit = System.getenv("GIT_COMMIT") ?: 'unknown'
 
 // Source compiler configuration
 tasks.withType(JavaCompile) {
-	options.compilerArgs += ['-Xlint:all', '-Xlint:-path']
-	options.deprecation = true
-	options.encoding = 'utf8'
+	sourceCompatibility = 8
+	targetCompatibility = 8
+	options.with {
+		deprecation = true
+		encoding = 'UTF-8'
+		compilerArgs << "-Xlint:all" << "-Xlint:-path" << "-Xlint:-processing"
+	}
 }
 
 repositories {
@@ -48,12 +52,6 @@ dependencies {
 	provided 'org.projectlombok:lombok:1.16.4'
 	provided 'org.ow2.asm:asm-debug-all:5.0.4'
 	provided 'com.github.javaparser:javaparser-core:2.3.0'
-}
-
-tasks.withType(JavaCompile) {
-	sourceCompatibility = 8
-	targetCompatibility = 8
-	options.compilerArgs << "-Xlint:all" << "-Xlint:-processing"
 }
 
 jar {
