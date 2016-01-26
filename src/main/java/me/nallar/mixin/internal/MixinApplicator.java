@@ -67,7 +67,7 @@ public class MixinApplicator {
 		}).filter(Objects::nonNull);
 	}
 
-	private static Path getPathFromClass(Class mixinSource) {
+	private static Path getPathFromClass(Class<?> mixinSource) {
 		try {
 			return Paths.get(mixinSource.getProtectionDomain().getCodeSource().getLocation().toURI());
 		} catch (URISyntaxException e) {
@@ -75,7 +75,7 @@ public class MixinApplicator {
 		}
 	}
 
-	public JavaTransformer getMixinTransformer(Class mixinSource) {
+	public JavaTransformer getMixinTransformer(Class<?> mixinSource) {
 		return getMixinTransformer(getPathFromClass(mixinSource), mixinSource.getPackage().getName());
 	}
 
@@ -95,6 +95,7 @@ public class MixinApplicator {
 
 			@Override
 			public void transform(ClassInfo classInfo) {
+				System.out.println("Processing " + classInfo.getName());
 				Optional.ofNullable(MixinApplicator.this.processMixinSource(classInfo)).ifPresent(transformers::add);
 			}
 		});
