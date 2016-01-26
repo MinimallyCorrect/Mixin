@@ -4,8 +4,6 @@ import lombok.Data;
 import lombok.val;
 import me.nallar.javatransformer.api.*;
 
-import java.io.*;
-import java.net.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
@@ -67,16 +65,8 @@ public class MixinApplicator {
 		}).filter(Objects::nonNull);
 	}
 
-	private static Path getPathFromClass(Class<?> mixinSource) {
-		try {
-			return Paths.get(mixinSource.getProtectionDomain().getCodeSource().getLocation().toURI());
-		} catch (URISyntaxException e) {
-			throw new IOError(e);
-		}
-	}
-
 	public JavaTransformer getMixinTransformer(Class<?> mixinSource) {
-		return getMixinTransformer(getPathFromClass(mixinSource), mixinSource.getPackage().getName());
+		return getMixinTransformer(JavaTransformer.pathFromClass(mixinSource), mixinSource.getPackage().getName());
 	}
 
 	public JavaTransformer getMixinTransformer(Path mixinSource) {
@@ -87,18 +77,13 @@ public class MixinApplicator {
 		JavaTransformer transformer = new JavaTransformer();
 
 		val transformers = new ArrayList<Transformer.TargetedTransformer>();
-		transformer.addTransformer(new Transformer() {
-			@Override
-			public boolean shouldTransform(String name) {
-				return packageName == null || name.startsWith(packageName);
-			}
+		transformer.addTransformer(classInfo -> {
+			if (!classInfo.getName().startsWith(packageName))
+				return;
 
-			@Override
-			public void transform(ClassInfo classInfo) {
-				System.out.println("Processing " + classInfo.getName());
-				Optional.ofNullable(MixinApplicator.this.processMixinSource(classInfo)).ifPresent(transformers::add);
-			}
+			Optional.ofNullable(MixinApplicator.this.processMixinSource(classInfo)).ifPresent(transformers::add);
 		});
+
 		transformer.parse(mixinSource);
 
 		transformer = new JavaTransformer();
