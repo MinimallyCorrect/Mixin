@@ -18,7 +18,7 @@ public class MixinApplicator {
 			if (!applicator.makeAccessible)
 				return;
 
-			Object makePublicObject = annotation.values.get("public");
+			Object makePublicObject = annotation.values.get("makePublic");
 			boolean makePublic = makePublicObject != null && (Boolean) makePublicObject;
 
 			member.accessFlags((f) -> f.makeAccessible(makePublic).without(AccessFlags.ACC_FINAL));
