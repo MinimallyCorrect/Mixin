@@ -14,9 +14,20 @@ public class MixinApplicator {
 	private static final Map<String, AnnotationApplier<? extends ClassMember>> consumerMap = new HashMap<>();
 
 	static {
-		addAnnotationHandler((annotation, member, target) -> target.add(member), "Add");
+		addAnnotationHandler(ClassInfo.class, (applicator, annotation, member, target) -> {
+			if (!applicator.makeAccessible)
+				return;
 
-		addAnnotationHandler(MethodInfo.class, (annotation, member, target) -> {
+			Object makePublicObject = annotation.values.get("public");
+			boolean makePublic = makePublicObject != null && (Boolean) makePublicObject;
+
+			member.accessFlags((f) -> f.makeAccessible(makePublic).without(AccessFlags.ACC_FINAL));
+			member.getMembers().forEach((it) -> it.accessFlags((f) -> f.makeAccessible(makePublic).without(AccessFlags.ACC_FINAL)));
+		}, "Mixin");
+
+		addAnnotationHandler((applicator, annotation, member, target) -> target.add(member), "Add");
+
+		addAnnotationHandler(MethodInfo.class, (applicator, annotation, member, target) -> {
 			MethodInfo existing = target.get(member);
 
 			if (existing == null) {
@@ -28,6 +39,7 @@ public class MixinApplicator {
 		}, "java.lang.Override", "OverrideStatic");
 	}
 
+	private boolean makeAccessible = true;
 	private boolean noMixinIsError = false;
 
 	@SuppressWarnings({"unchecked"})
@@ -45,23 +57,23 @@ public class MixinApplicator {
 
 	@SuppressWarnings("unchecked")
 	private static <T extends ClassMember> void addAnnotationHandler(Class<T> clazz, AnnotationApplier<T> methodInfoConsumer, String... names) {
-		AnnotationApplier<?> applier = (annotation, annotated, target) -> {
+		AnnotationApplier<?> applier = (applicator, annotation, annotated, target) -> {
 			if (clazz.isAssignableFrom(clazz)) {
-				methodInfoConsumer.apply(annotation, (T) annotated, target);
+				methodInfoConsumer.apply(applicator, annotation, (T) annotated, target);
 			}
 			// TODO else log warning here?
 		};
 		addAnnotationHandler(applier, names);
 	}
 
-	private static Stream<Consumer<ClassInfo>> handleAnnotation(ClassMember annotated) {
+	private Stream<Consumer<ClassInfo>> handleAnnotation(ClassMember annotated) {
 		return annotated.getAnnotations().stream().map(annotation -> {
 			@SuppressWarnings("unchecked")
 			AnnotationApplier<ClassMember> applier = (AnnotationApplier<ClassMember>) consumerMap.get(annotation.type.getClassName());
 			if (applier == null)
 				return null;
 
-			return (Consumer<ClassInfo>) (target) -> applier.apply(annotation, annotated, target);
+			return (Consumer<ClassInfo>) (target) -> applier.apply(this, annotation, annotated, target);
 		}).filter(Objects::nonNull);
 	}
 
@@ -112,7 +124,8 @@ public class MixinApplicator {
 			throw new MixinError(clazz.getName() + " must be abstract to use @Mixin");
 		}
 
-		List<Consumer<ClassInfo>> applicators = clazz.getMembers().stream().flatMap(MixinApplicator::handleAnnotation).collect(Collectors.toList());
+		List<Consumer<ClassInfo>> applicators = Stream.concat(Stream.of(clazz), clazz.getMembers().stream())
+			.flatMap(this::handleAnnotation).collect(Collectors.toList());
 
 		logInfo("Found Mixin class '" + clazz.getName() + "' targeting class '" + target + " with " + applicators.size() + " applicators.");
 
@@ -136,6 +149,6 @@ public class MixinApplicator {
 	}
 
 	private interface AnnotationApplier<T extends ClassMember> {
-		void apply(Annotation annotation, T annotatedMember, ClassInfo mixinTarget);
+		void apply(MixinApplicator applicator, Annotation annotation, T annotatedMember, ClassInfo mixinTarget);
 	}
 }
