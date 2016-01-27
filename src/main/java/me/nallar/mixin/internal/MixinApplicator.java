@@ -15,6 +15,8 @@ public class MixinApplicator {
 
 	static {
 		addAnnotationHandler(ClassInfo.class, (applicator, annotation, member, target) -> {
+			System.out.println("Handling class " + member + " with annotation " + annotation);
+			
 			if (!applicator.makeAccessible)
 				return;
 
