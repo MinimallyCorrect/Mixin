@@ -16,15 +16,15 @@ public class MixinApplicator {
 	static {
 		addAnnotationHandler(ClassInfo.class, (applicator, annotation, member, target) -> {
 			System.out.println("Handling class " + member + " with annotation " + annotation);
-			
+
 			if (!applicator.makeAccessible)
 				return;
 
 			Object makePublicObject = annotation.values.get("makePublic");
 			boolean makePublic = makePublicObject != null && (Boolean) makePublicObject;
 
-			member.accessFlags((f) -> f.makeAccessible(makePublic).without(AccessFlags.ACC_FINAL));
-			member.getMembers().forEach((it) -> it.accessFlags((f) -> f.makeAccessible(makePublic).without(AccessFlags.ACC_FINAL)));
+			target.accessFlags((f) -> f.makeAccessible(makePublic).without(AccessFlags.ACC_FINAL));
+			target.getMembers().forEach((it) -> it.accessFlags((f) -> f.makeAccessible(makePublic).without(AccessFlags.ACC_FINAL)));
 		}, "Mixin");
 
 		addAnnotationHandler((applicator, annotation, member, target) -> target.add(member), "Add");
