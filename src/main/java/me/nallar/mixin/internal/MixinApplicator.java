@@ -12,6 +12,7 @@ import java.util.stream.*;
 @Data
 public class MixinApplicator {
 	private static final Map<String, AnnotationApplier<? extends ClassMember>> consumerMap = new HashMap<>();
+	private static final Map<Path, List<String>> sources = new HashMap<>();
 
 	static {
 		addAnnotationHandler(ClassInfo.class, (applicator, annotation, member, target) -> {
@@ -68,6 +69,15 @@ public class MixinApplicator {
 		addAnnotationHandler(applier, names);
 	}
 
+	private static boolean packageNameMatches(String className, List<String> packages) {
+		for (String s : packages) {
+			if (s == null || className.startsWith(s)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private Stream<Consumer<ClassInfo>> handleAnnotation(ClassMember annotated) {
 		return annotated.getAnnotations().stream().map(annotation -> {
 			@SuppressWarnings("unchecked")
@@ -79,28 +89,45 @@ public class MixinApplicator {
 		}).filter(Objects::nonNull);
 	}
 
-	public JavaTransformer getMixinTransformer(Class<?> mixinSource) {
-		return getMixinTransformer(JavaTransformer.pathFromClass(mixinSource), mixinSource.getPackage().getName());
+	public void addSource(Class<?> mixinSource) {
+		addSource(JavaTransformer.pathFromClass(mixinSource), mixinSource.getPackage().getName());
 	}
 
-	public JavaTransformer getMixinTransformer(Path mixinSource) {
-		return getMixinTransformer(mixinSource, null);
+	public void addSource(Path mixinSource) {
+		addSource(mixinSource, null);
 	}
 
-	public JavaTransformer getMixinTransformer(Path mixinSource, String packageName) {
-		JavaTransformer transformer = new JavaTransformer();
+	public void addSource(Path mixinSource, String packageName) {
+		List<String> current = sources.get(mixinSource);
 
+		if (current == null) {
+			current = new ArrayList<>();
+			sources.put(mixinSource, current);
+		}
+
+		if (current.contains(null))
+			return;
+
+		if (packageName == null)
+			current.clear();
+
+		current.add(packageName);
+	}
+
+	public JavaTransformer getMixinTransformer() {
 		val transformers = new ArrayList<Transformer.TargetedTransformer>();
-		transformer.addTransformer(classInfo -> {
-			if (!classInfo.getName().startsWith(packageName))
-				return;
 
-			Optional.ofNullable(MixinApplicator.this.processMixinSource(classInfo)).ifPresent(transformers::add);
-		});
+		for (Map.Entry<Path, List<String>> pathListEntry : sources.entrySet()) {
+			JavaTransformer transformer = new JavaTransformer();
+			transformer.addTransformer(classInfo -> {
+				if (packageNameMatches(classInfo.getName(), pathListEntry.getValue()))
+					Optional.ofNullable(MixinApplicator.this.processMixinSource(classInfo)).ifPresent(transformers::add);
+			});
 
-		transformer.parse(mixinSource);
+			transformer.parse(pathListEntry.getKey());
+		}
 
-		transformer = new JavaTransformer();
+		JavaTransformer transformer = new JavaTransformer();
 		transformers.forEach(transformer::addTransformer);
 		return transformer;
 	}
