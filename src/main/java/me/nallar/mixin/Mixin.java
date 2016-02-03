@@ -5,7 +5,7 @@ import java.lang.annotation.*;
 /**
  * Adding this annotation to a class marks it as a mixin
  */
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.PACKAGE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Mixin {
 	/**

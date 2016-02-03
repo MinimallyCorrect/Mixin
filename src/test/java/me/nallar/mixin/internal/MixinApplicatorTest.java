@@ -14,4 +14,13 @@ public class MixinApplicatorTest {
 
 		Assert.assertTrue("Must have at least one mixin transformer registered", transformer.getClassTransformers().size() != 0);
 	}
+
+	@Test
+	public void testGetMixinTransformerWithPackageSource() throws Exception {
+		val applicator = new MixinApplicator();
+		applicator.addSource("me.nallar.mixin.internal.mixinsource");
+		val transformer = applicator.getMixinTransformer();
+
+		Assert.assertTrue("Must have at least one mixin transformer registered", transformer.getClassTransformers().size() != 0);
+	}
 }
