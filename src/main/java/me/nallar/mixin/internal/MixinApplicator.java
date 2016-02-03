@@ -3,6 +3,7 @@ package me.nallar.mixin.internal;
 import lombok.Data;
 import lombok.val;
 import me.nallar.javatransformer.api.*;
+import me.nallar.whocalled.WhoCalled;
 
 import java.nio.file.*;
 import java.util.*;
@@ -89,6 +90,14 @@ public class MixinApplicator {
 		}).filter(Objects::nonNull);
 	}
 
+	public void addSource(String mixinPackage) {
+		try {
+			addSource(Class.forName(mixinPackage + ".package-info", true, WhoCalled.$.getCallingClass().getClassLoader()));
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	public void addSource(Class<?> mixinSource) {
 		addSource(JavaTransformer.pathFromClass(mixinSource), mixinSource.getPackage().getName());
 	}
@@ -133,6 +142,9 @@ public class MixinApplicator {
 	}
 
 	private Transformer.TargetedTransformer processMixinSource(ClassInfo clazz) {
+		if (clazz.getName().equals("package-info"))
+			return null;
+
 		List<Annotation> mixins = clazz.getAnnotations("me.nallar.mixin.Mixin");
 
 		if (mixins.size() == 0)
