@@ -142,9 +142,6 @@ public class MixinApplicator {
 	}
 
 	private Transformer.TargetedTransformer processMixinSource(ClassInfo clazz) {
-		if (clazz.getName().equals("package-info"))
-			return null;
-
 		List<Annotation> mixins = clazz.getAnnotations("me.nallar.mixin.Mixin");
 
 		if (mixins.size() == 0)
