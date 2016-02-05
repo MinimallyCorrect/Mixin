@@ -49,9 +49,7 @@ configurations {
 dependencies {
 	testCompile "junit:junit:4.12"
 	compile 'me.nallar.whocalled:WhoCalled:1.0'
-	compile group: 'me.nallar', name: "JavaTransformer", version: "1.2", changing: false
-	compile 'com.github.javaparser:javaparser-core:2.3.0'
-	compile 'org.ow2.asm:asm-debug-all:5.0.4'
+	compile group: 'me.nallar', name: "JavaTransformer", version: "1.3", changing: false
 	hidden 'org.projectlombok:lombok:1.16.4'
 }
 
