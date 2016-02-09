@@ -17,7 +17,7 @@ public class MixinApplicator {
 
 	static {
 		addAnnotationHandler(ClassInfo.class, (applicator, annotation, member, target) -> {
-			System.out.println("Handling class " + member + " with annotation " + annotation);
+			logInfo("Handling class " + member.getName() + " with annotation " + annotation);
 
 			if (!applicator.makeAccessible)
 				return;
@@ -77,6 +77,11 @@ public class MixinApplicator {
 			}
 		}
 		return false;
+	}
+
+	private static void logInfo(String s) {
+		// TODO: 24/01/2016 Proper logging
+		System.out.println(s);
 	}
 
 	private Stream<Consumer<ClassInfo>> handleAnnotation(ClassMember annotated) {
@@ -179,11 +184,6 @@ public class MixinApplicator {
 				applicators.forEach(applicator -> applicator.accept(classInfo));
 			}
 		};
-	}
-
-	private void logInfo(String s) {
-		// TODO: 24/01/2016 Proper logging
-		System.out.println(s);
 	}
 
 	private interface AnnotationApplier<T extends ClassMember> {
