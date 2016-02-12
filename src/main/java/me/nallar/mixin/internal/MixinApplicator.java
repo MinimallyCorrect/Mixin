@@ -60,10 +60,10 @@ public class MixinApplicator {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <T extends ClassMember> void addAnnotationHandler(Class<T> clazz, AnnotationApplier<T> methodInfoConsumer, String... names) {
+	private static <T extends ClassMember> void addAnnotationHandler(Class<T> clazz, AnnotationApplier<T> specificApplier, String... names) {
 		AnnotationApplier<?> applier = (applicator, annotation, annotated, target) -> {
-			if (clazz.isAssignableFrom(clazz)) {
-				methodInfoConsumer.apply(applicator, annotation, (T) annotated, target);
+			if (clazz.isAssignableFrom(annotated.getClass())) {
+				specificApplier.apply(applicator, annotation, (T) annotated, target);
 			}
 			// TODO else log warning here?
 		};
@@ -91,7 +91,13 @@ public class MixinApplicator {
 			if (applier == null)
 				return null;
 
-			return (Consumer<ClassInfo>) (target) -> applier.apply(this, annotation, annotated, target);
+			return (Consumer<ClassInfo>) (target) -> {
+				try {
+					applier.apply(this, annotation, annotated, target);
+				} catch (Exception e) {
+					throw new MixinError("Failed to apply handler for annotation '" + annotation.type.getClassName() + "' in '" + annotated.getClassInfo().getName() + "' to '" + target.getName() + "'", e);
+				}
+			};
 		}).filter(Objects::nonNull);
 	}
 
