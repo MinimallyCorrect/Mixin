@@ -95,7 +95,7 @@ public class MixinApplicator {
 				try {
 					applier.apply(this, annotation, annotated, target);
 				} catch (Exception e) {
-					throw new MixinError("Failed to apply handler for annotation '" + annotation.type.getClassName() + "' in '" + annotated.getClassInfo().getName() + "' to '" + target.getName() + "'", e);
+					throw new MixinError("Failed to apply handler for annotation '" + annotation.type.getClassName() + "' on '" + annotated + "' in '" + annotated.getClassInfo().getName() + "' to '" + target.getName() + "'", e);
 				}
 			};
 		}).filter(Objects::nonNull);
