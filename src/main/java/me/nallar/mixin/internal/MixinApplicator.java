@@ -72,8 +72,17 @@ public class MixinApplicator {
 			if (!name.contains(".")) {
 				name = "me.nallar.mixin." + name;
 			}
-			consumerMap.getOrDefault(name, new ArrayList<>()).add(methodInfoConsumer instanceof SortableAnnotationApplier ? (SortableAnnotationApplier) methodInfoConsumer : SortableAnnotationApplier.of(0, methodInfoConsumer));
+			addAnnotationHandler(methodInfoConsumer, name);
 		}
+	}
+
+	private static void addAnnotationHandler(AnnotationApplier<?> methodInfoConsumer, String name) {
+		List<SortableAnnotationApplier<? extends ClassMember>> appliers = consumerMap.get(name);
+
+		if (appliers == null)
+			consumerMap.put(name, appliers = new ArrayList<>());
+
+		appliers.add(methodInfoConsumer instanceof SortableAnnotationApplier ? (SortableAnnotationApplier) methodInfoConsumer : SortableAnnotationApplier.of(0, methodInfoConsumer));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -208,6 +217,8 @@ public class MixinApplicator {
 			.flatMap(this::handleAnnotation).sorted().collect(Collectors.toList());
 
 		logInfo("Found Mixin class '" + clazz.getName() + "' targeting class '" + target + " with " + applicators.size() + " applicators.");
+
+		assert !applicators.isEmpty();
 
 		final String finalTarget = target;
 		TargetedTransformer transformer = new TargetedTransformer() {
