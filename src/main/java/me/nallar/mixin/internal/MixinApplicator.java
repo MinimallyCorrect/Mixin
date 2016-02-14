@@ -197,7 +197,7 @@ public class MixinApplicator {
 		logInfo("Found Mixin class '" + clazz.getName() + "' targeting class '" + target + " with " + applicators.size() + " applicators.");
 
 		final String finalTarget = target;
-		val transformer = new TargetedTransformer() {
+		TargetedTransformer transformer = new TargetedTransformer() {
 			@Override
 			public Collection<String> getTargetClasses() {
 				return Collections.singletonList(finalTarget);
