@@ -50,7 +50,7 @@ configurations {
 dependencies {
 	testCompile "junit:junit:4.12"
 	compile 'me.nallar.whocalled:WhoCalled:1.1'
-	compile 'me.nallar:JavaTransformer:1.7-SNAPSHOT'
+	compile 'me.nallar:JavaTransformer:1.7'
 	hidden 'org.projectlombok:lombok:1.16.4'
 }
 
