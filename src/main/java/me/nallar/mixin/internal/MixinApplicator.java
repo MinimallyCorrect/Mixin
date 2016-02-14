@@ -11,11 +11,11 @@ import java.util.stream.*;
 
 @Data
 public class MixinApplicator {
-	private static final Map<String, AnnotationApplier<? extends ClassMember>> consumerMap = new HashMap<>();
+	private static final Map<String, SortableAnnotationApplier<? extends ClassMember>> consumerMap = new HashMap<>();
 	private static final Map<Path, List<String>> sources = new HashMap<>();
 
 	static {
-		addAnnotationHandler(ClassInfo.class, (applicator, annotation, member, target) -> {
+		addAnnotationHandler(ClassInfo.class, SortableAnnotationApplier.of(1, (applicator, annotation, member, target) -> {
 			logInfo("Handling class " + member.getName() + " with annotation " + annotation);
 
 			if (!applicator.makeAccessible)
@@ -26,7 +26,7 @@ public class MixinApplicator {
 
 			target.accessFlags((f) -> f.makeAccessible(makePublic).without(AccessFlags.ACC_FINAL));
 			target.getMembers().forEach((it) -> it.accessFlags((f) -> f.makeAccessible(makePublic).without(AccessFlags.ACC_FINAL)));
-		}, "Mixin");
+		}), "Mixin");
 
 		addAnnotationHandler((applicator, annotation, member, target) -> target.add(member), "Add");
 
@@ -59,7 +59,7 @@ public class MixinApplicator {
 			if (!name.contains(".")) {
 				name = "me.nallar.mixin." + name;
 			}
-			consumerMap.put(name, methodInfoConsumer);
+			consumerMap.put(name, methodInfoConsumer instanceof SortableAnnotationApplier ? (SortableAnnotationApplier) methodInfoConsumer : SortableAnnotationApplier.of(0, methodInfoConsumer));
 		}
 	}
 
@@ -91,17 +91,17 @@ public class MixinApplicator {
 	private Stream<Consumer<ClassInfo>> handleAnnotation(ClassMember annotated) {
 		return annotated.getAnnotations().stream().map(annotation -> {
 			@SuppressWarnings("unchecked")
-			AnnotationApplier<ClassMember> applier = (AnnotationApplier<ClassMember>) consumerMap.get(annotation.type.getClassName());
+			SortableAnnotationApplier<ClassMember> applier = (SortableAnnotationApplier<ClassMember>) consumerMap.get(annotation.type.getClassName());
 			if (applier == null)
 				return null;
 
-			return (Consumer<ClassInfo>) (target) -> {
+			return (Consumer<ClassInfo>) SortableConsumer.of(applier.getSortIndex(), (Consumer<ClassInfo>) (target) -> {
 				try {
 					applier.apply(this, annotation, annotated, target);
 				} catch (Exception e) {
 					throw new MixinError("Failed to apply handler for annotation '" + annotation.type.getClassName() + "' on '" + annotated + "' in '" + annotated.getClassInfo().getName() + "' to '" + target.getName() + "'", e);
 				}
-			};
+			});
 		}).filter(Objects::nonNull);
 	}
 
@@ -192,7 +192,7 @@ public class MixinApplicator {
 		}
 
 		List<Consumer<ClassInfo>> applicators = Stream.concat(Stream.of(clazz), clazz.getMembers().stream())
-			.flatMap(this::handleAnnotation).collect(Collectors.toList());
+			.flatMap(this::handleAnnotation).sorted().collect(Collectors.toList());
 
 		logInfo("Found Mixin class '" + clazz.getName() + "' targeting class '" + target + " with " + applicators.size() + " applicators.");
 
@@ -215,6 +215,46 @@ public class MixinApplicator {
 
 	private interface AnnotationApplier<T extends ClassMember> {
 		void apply(MixinApplicator applicator, Annotation annotation, T annotatedMember, ClassInfo mixinTarget);
+	}
+
+	private interface SortableAnnotationApplier<T extends ClassMember> extends AnnotationApplier<T> {
+		static <T extends ClassMember> SortableAnnotationApplier<T> of(int index, AnnotationApplier<T> applier) {
+			return new SortableAnnotationApplier<T>() {
+				@Override
+				public int getSortIndex() {
+					return index;
+				}
+
+				@Override
+				public void apply(MixinApplicator applicator, Annotation annotation, T annotatedMember, ClassInfo mixinTarget) {
+					applier.apply(applicator, annotation, annotatedMember, mixinTarget);
+				}
+			};
+		}
+
+		int getSortIndex();
+	}
+
+	private interface SortableConsumer<T> extends Consumer<T>, Comparable {
+		static <T> SortableConsumer<T> of(int sortIndex, Consumer<T> consumer) {
+			return new SortableConsumer<T>() {
+				@Override
+				public int getSortIndex() {
+					return sortIndex;
+				}
+
+				@Override
+				public void accept(T t) {
+					consumer.accept(t);
+				}
+			};
+		}
+
+		int getSortIndex();
+
+		default int compareTo(Object other) {
+			return Integer.compare(getSortIndex(), ((SortableConsumer) other).getSortIndex());
+		}
 	}
 
 	private static abstract class TargetedTransformer implements Transformer.TargetedTransformer {
