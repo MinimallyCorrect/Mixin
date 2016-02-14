@@ -1,7 +1,6 @@
 package me.nallar.mixin.internal;
 
-import lombok.Data;
-import lombok.val;
+import lombok.*;
 import me.nallar.javatransformer.api.*;
 import me.nallar.whocalled.WhoCalled;
 
@@ -43,8 +42,13 @@ public class MixinApplicator {
 		}, "java.lang.Override", "OverrideStatic");
 	}
 
+	private final List<TargetedTransformer> transformers = new ArrayList<>();
 	private boolean makeAccessible = true;
 	private boolean noMixinIsError = false;
+	private boolean notAppliedIsError = true;
+	@Getter(AccessLevel.NONE)
+	@Setter(AccessLevel.NONE)
+	private JavaTransformer transformer;
 
 	@SuppressWarnings({"unchecked"})
 	private static void addAnnotationHandler(AnnotationApplier<?> methodInfoConsumer, String... names) {
@@ -135,6 +139,9 @@ public class MixinApplicator {
 	}
 
 	public JavaTransformer getMixinTransformer() {
+		if (this.transformer != null)
+			return transformer;
+
 		val transformers = new ArrayList<Transformer.TargetedTransformer>();
 
 		for (Map.Entry<Path, List<String>> pathListEntry : sources.entrySet()) {
@@ -149,7 +156,18 @@ public class MixinApplicator {
 
 		JavaTransformer transformer = new JavaTransformer();
 		transformers.forEach(transformer::addTransformer);
-		return transformer;
+		if (notAppliedIsError)
+			transformer.getAfterTransform().add(this::checkForSkippedTransformers);
+		return this.transformer = transformer;
+	}
+
+	private void checkForSkippedTransformers(JavaTransformer javaTransformer) {
+		HashSet<Transformer.TargetedTransformer> notRan = transformers.stream()
+			.filter(targetedTransformer -> !targetedTransformer.ran).collect(Collectors.toCollection(HashSet::new));
+
+		if (!notRan.isEmpty()) {
+			throw new MixinError(notRan.size() + " Transformers were not applied: " + transformers);
+		}
 	}
 
 	private Transformer.TargetedTransformer processMixinSource(ClassInfo clazz) {
@@ -179,7 +197,7 @@ public class MixinApplicator {
 		logInfo("Found Mixin class '" + clazz.getName() + "' targeting class '" + target + " with " + applicators.size() + " applicators.");
 
 		final String finalTarget = target;
-		return new Transformer.TargetedTransformer() {
+		val transformer = new TargetedTransformer() {
 			@Override
 			public Collection<String> getTargetClasses() {
 				return Collections.singletonList(finalTarget);
@@ -187,12 +205,24 @@ public class MixinApplicator {
 
 			@Override
 			public void transform(ClassInfo classInfo) {
+				ran = true;
 				applicators.forEach(applicator -> applicator.accept(classInfo));
 			}
 		};
+		transformers.add(transformer);
+		return transformer;
 	}
 
 	private interface AnnotationApplier<T extends ClassMember> {
 		void apply(MixinApplicator applicator, Annotation annotation, T annotatedMember, ClassInfo mixinTarget);
+	}
+
+	private static abstract class TargetedTransformer implements Transformer.TargetedTransformer {
+		boolean ran;
+
+		public String toString() {
+			val classes = getTargetClasses();
+			return classes.size() == 1 ? classes.iterator().next() : classes.toString();
+		}
 	}
 }
