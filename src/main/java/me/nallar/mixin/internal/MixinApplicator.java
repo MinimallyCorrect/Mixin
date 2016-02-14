@@ -30,14 +30,17 @@ public class MixinApplicator {
 			target.getMembers().forEach((it) -> it.accessFlags((f) -> f.makeAccessible(makePublic).without(AccessFlags.ACC_FINAL)));
 		}), "Mixin");
 
-		addAnnotationHandler((applicator, annotation, member, target) -> {
+		addAnnotationHandler(FieldInfo.class, (applicator, annotation, member, target) -> {
 			String name = member.getName();
 			if (!name.endsWith("_"))
-				throw new MixinError("Name of @Add-ed member must end with '_'");
+				throw new MixinError("Name of @Add-ed field must end with '_'");
 
 			target.add(member);
-			ClassMember added = target.get(member);
-			added.setName(name.substring(0, name.length() - 1));
+			target.get(member).setName(name.substring(0, name.length() - 1));
+		}, "Add");
+
+		addAnnotationHandler(MethodInfo.class, (applicator, annotation, member, target) -> {
+			target.add(member);
 		}, "Add");
 
 		addAnnotationHandler(MethodInfo.class, (applicator, annotation, member, target) -> {
