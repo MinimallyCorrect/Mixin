@@ -11,13 +11,13 @@ import java.util.stream.*;
 
 @Data
 public class MixinApplicator {
-	private static final Map<String, SortableAnnotationApplier<? extends ClassMember>> consumerMap = new HashMap<>();
+	private static final Map<String, List<SortableAnnotationApplier<? extends ClassMember>>> consumerMap = new HashMap<>();
 	private static final Map<Path, List<String>> sources = new HashMap<>();
 
 	static {
 		addAnnotationHandler(ClassInfo.class, SortableAnnotationApplier.of(-1, (applicator, annotation, member, target) -> {
 			logInfo("Handling class " + member.getName() + " with annotation " + annotation);
-		}));
+		}), "Mixin");
 
 		addAnnotationHandler(ClassInfo.class, SortableAnnotationApplier.of(1, (applicator, annotation, member, target) -> {
 			if (!applicator.makeAccessible)
@@ -30,7 +30,15 @@ public class MixinApplicator {
 			target.getMembers().forEach((it) -> it.accessFlags((f) -> f.makeAccessible(makePublic).without(AccessFlags.ACC_FINAL)));
 		}), "Mixin");
 
-		addAnnotationHandler((applicator, annotation, member, target) -> target.add(member), "Add");
+		addAnnotationHandler((applicator, annotation, member, target) -> {
+			String name = member.getName();
+			if (!name.endsWith("_"))
+				throw new MixinError("Name of @Add-ed member must end with '_'");
+
+			target.add(member);
+			ClassMember added = target.get(member);
+			added.setName(name.substring(0, name.length() - 1));
+		}, "Add");
 
 		addAnnotationHandler(MethodInfo.class, (applicator, annotation, member, target) -> {
 			MethodInfo existing = target.get(member);
@@ -61,7 +69,7 @@ public class MixinApplicator {
 			if (!name.contains(".")) {
 				name = "me.nallar.mixin." + name;
 			}
-			consumerMap.put(name, methodInfoConsumer instanceof SortableAnnotationApplier ? (SortableAnnotationApplier) methodInfoConsumer : SortableAnnotationApplier.of(0, methodInfoConsumer));
+			consumerMap.getOrDefault(name, new ArrayList<>()).add(methodInfoConsumer instanceof SortableAnnotationApplier ? (SortableAnnotationApplier) methodInfoConsumer : SortableAnnotationApplier.of(0, methodInfoConsumer));
 		}
 	}
 
@@ -91,19 +99,19 @@ public class MixinApplicator {
 	}
 
 	private Stream<Consumer<ClassInfo>> handleAnnotation(ClassMember annotated) {
-		return annotated.getAnnotations().stream().map(annotation -> {
+		return annotated.getAnnotations().stream().flatMap(annotation -> {
 			@SuppressWarnings("unchecked")
-			SortableAnnotationApplier<ClassMember> applier = (SortableAnnotationApplier<ClassMember>) consumerMap.get(annotation.type.getClassName());
-			if (applier == null)
+			List<SortableAnnotationApplier<ClassMember>> appliers = (List<SortableAnnotationApplier<ClassMember>>) (List) consumerMap.get(annotation.type.getClassName());
+			if (appliers == null)
 				return null;
 
-			return (Consumer<ClassInfo>) SortableConsumer.of(applier.getSortIndex(), (Consumer<ClassInfo>) (target) -> {
+			return appliers.stream().map(applier -> (Consumer<ClassInfo>) SortableConsumer.of(applier.getSortIndex(), (Consumer<ClassInfo>) (target) -> {
 				try {
 					applier.apply(this, annotation, annotated, target);
 				} catch (Exception e) {
 					throw new MixinError("Failed to apply handler for annotation '" + annotation.type.getClassName() + "' on '" + annotated + "' in '" + annotated.getClassInfo().getName() + "' to '" + target.getName() + "'", e);
 				}
-			});
+			}));
 		}).filter(Objects::nonNull);
 	}
 
@@ -237,6 +245,7 @@ public class MixinApplicator {
 		int getSortIndex();
 	}
 
+	@SuppressWarnings("rawtypes")
 	private interface SortableConsumer<T> extends Consumer<T>, Comparable {
 		static <T> SortableConsumer<T> of(int sortIndex, Consumer<T> consumer) {
 			return new SortableConsumer<T>() {
