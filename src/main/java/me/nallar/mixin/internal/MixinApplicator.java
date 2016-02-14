@@ -64,7 +64,7 @@ public class MixinApplicator {
 	private JavaTransformer transformer;
 
 	@SuppressWarnings({"unchecked"})
-	private static void addAnnotationHandler(AnnotationApplier<?> methodInfoConsumer, String... names) {
+	private static void addAnnotationHandler(AnnotationApplier<?> applier, String... names) {
 		if (names.length == 0)
 			throw new IllegalArgumentException("Must provide at least one name");
 
@@ -72,27 +72,28 @@ public class MixinApplicator {
 			if (!name.contains(".")) {
 				name = "me.nallar.mixin." + name;
 			}
-			addAnnotationHandler(methodInfoConsumer, name);
+			addAnnotationHandler(applier, name);
 		}
 	}
 
-	private static void addAnnotationHandler(AnnotationApplier<?> methodInfoConsumer, String name) {
+	private static void addAnnotationHandler(AnnotationApplier<?> applier, String name) {
 		List<SortableAnnotationApplier<? extends ClassMember>> appliers = consumerMap.get(name);
 
 		if (appliers == null)
 			consumerMap.put(name, appliers = new ArrayList<>());
 
-		appliers.add(methodInfoConsumer instanceof SortableAnnotationApplier ? (SortableAnnotationApplier) methodInfoConsumer : SortableAnnotationApplier.of(0, methodInfoConsumer));
+		appliers.add(applier instanceof SortableAnnotationApplier ? (SortableAnnotationApplier) applier : SortableAnnotationApplier.of(0, applier));
 	}
 
 	@SuppressWarnings("unchecked")
 	private static <T extends ClassMember> void addAnnotationHandler(Class<T> clazz, AnnotationApplier<T> specificApplier, String... names) {
-		AnnotationApplier<?> applier = (applicator, annotation, annotated, target) -> {
+		int index = specificApplier instanceof SortableAnnotationApplier ? ((SortableAnnotationApplier) specificApplier).getSortIndex() : 0;
+		SortableAnnotationApplier<?> applier = SortableAnnotationApplier.of(index, (applicator, annotation, annotated, target) -> {
 			if (clazz.isAssignableFrom(annotated.getClass())) {
 				specificApplier.apply(applicator, annotation, (T) annotated, target);
 			}
 			// TODO else log warning here?
-		};
+		});
 		addAnnotationHandler(applier, names);
 	}
 
@@ -110,14 +111,14 @@ public class MixinApplicator {
 		System.out.println(s);
 	}
 
-	private Stream<Consumer<ClassInfo>> handleAnnotation(ClassMember annotated) {
+	private Stream<SortableConsumer<ClassInfo>> handleAnnotation(ClassMember annotated) {
 		return annotated.getAnnotations().stream().flatMap(annotation -> {
 			@SuppressWarnings("unchecked")
 			List<SortableAnnotationApplier<ClassMember>> appliers = (List<SortableAnnotationApplier<ClassMember>>) (List) consumerMap.get(annotation.type.getClassName());
 			if (appliers == null)
 				return null;
 
-			return appliers.stream().map(applier -> (Consumer<ClassInfo>) SortableConsumer.of(applier.getSortIndex(), (Consumer<ClassInfo>) (target) -> {
+			return appliers.stream().map(applier -> SortableConsumer.of(applier.getSortIndex(), (Consumer<ClassInfo>) (target) -> {
 				try {
 					applier.apply(this, annotation, annotated, target);
 				} catch (Exception e) {
