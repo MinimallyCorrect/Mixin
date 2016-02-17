@@ -111,6 +111,14 @@ public class MixinApplicator {
 		System.out.println(s);
 	}
 
+	private static String ignoreException(Supplier<String> supplier, String name) {
+		try {
+			return supplier.get();
+		} catch (Throwable t) {
+			return "Failed to get '" + name + "' due to " + t;
+		}
+	}
+
 	private Stream<SortableConsumer<ClassInfo>> handleAnnotation(ClassMember annotated) {
 		return annotated.getAnnotations().stream().flatMap(annotation -> {
 			@SuppressWarnings("unchecked")
@@ -122,7 +130,7 @@ public class MixinApplicator {
 				try {
 					applier.apply(this, annotation, annotated, target);
 				} catch (Exception e) {
-					throw new MixinError("Failed to apply handler for annotation '" + annotation.type.getClassName() + "' on '" + annotated + "' in '" + annotated.getClassInfo().getName() + "' to '" + target.getName() + "'", e);
+					throw new MixinError("Failed to apply handler for annotation '" + annotation.type.getClassName() + "' on '" + ignoreException(annotated::toString, "annotated") + "' in '" + annotated.getClassInfo().getName() + "' to '" + target.getName() + "'", e);
 				}
 			}));
 		}).filter(Objects::nonNull);
