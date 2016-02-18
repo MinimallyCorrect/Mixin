@@ -47,7 +47,7 @@ public class MixinApplicator {
 			MethodInfo existing = target.get(member);
 
 			if (existing == null) {
-				throw new MixinError("Can't override method " + member + " as it does not exist in target: " + target);
+				throw new MixinError("Can't override method " + member + " as it does not exist in target: " + target + "\nMethods in target: " + target.getMethods());
 			}
 
 			target.remove(existing);
