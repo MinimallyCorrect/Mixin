@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
+@SuppressWarnings("CodeBlock2Expr")
 @Data
 public class MixinApplicator {
 	private static final Map<String, List<SortableAnnotationApplier<? extends ClassMember>>> consumerMap = new HashMap<>();
@@ -92,7 +93,6 @@ public class MixinApplicator {
 			if (clazz.isAssignableFrom(annotated.getClass())) {
 				specificApplier.apply(applicator, annotation, (T) annotated, target);
 			}
-			// TODO else log warning here?
 		});
 		addAnnotationHandler(applier, names);
 	}
