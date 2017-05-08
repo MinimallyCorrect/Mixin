@@ -17,7 +17,7 @@ public class MixinApplicator {
 
 	static {
 		addAnnotationHandler(ClassInfo.class, SortableAnnotationApplier.of(-1, (applicator, annotation, member, target) -> {
-			logInfo("Handling class " + member.getName() + " with annotation " + annotation);
+			applicator.logInfo("Handling class " + member.getName() + " with annotation " + annotation);
 		}), "Mixin");
 
 		addAnnotationHandler(ClassInfo.class, SortableAnnotationApplier.of(1, (applicator, annotation, member, target) -> {
@@ -57,6 +57,7 @@ public class MixinApplicator {
 	}
 
 	private final List<TargetedTransformer> transformers = new ArrayList<>();
+	private Consumer<String> log = System.out::println;
 	private boolean makeAccessible = true;
 	private boolean noMixinIsError = false;
 	private boolean notAppliedIsError = true;
@@ -78,10 +79,7 @@ public class MixinApplicator {
 	}
 
 	private static void addAnnotationHandler(AnnotationApplier<?> applier, String name) {
-		List<SortableAnnotationApplier<? extends ClassMember>> appliers = consumerMap.get(name);
-
-		if (appliers == null)
-			consumerMap.put(name, appliers = new ArrayList<>());
+		List<SortableAnnotationApplier<? extends ClassMember>> appliers = consumerMap.computeIfAbsent(name, k -> new ArrayList<>());
 
 		appliers.add(applier instanceof SortableAnnotationApplier ? (SortableAnnotationApplier) applier : SortableAnnotationApplier.of(0, applier));
 	}
@@ -106,9 +104,8 @@ public class MixinApplicator {
 		return false;
 	}
 
-	private static void logInfo(String s) {
-		// TODO: 24/01/2016 Proper logging
-		System.out.println(s);
+	private void logInfo(String s) {
+		log.accept(s);
 	}
 
 	private static String ignoreException(Supplier<String> supplier, String name) {
@@ -193,6 +190,11 @@ public class MixinApplicator {
 		if (notAppliedIsError)
 			transformer.getAfterTransform().add(this::checkForSkippedTransformers);
 		return this.transformer = transformer;
+	}
+
+	public void setLog(Consumer<String> log) {
+		this.log.accept("Unregistering logger " + this.log + ", registering " + log);
+		this.log = log;
 	}
 
 	private void checkForSkippedTransformers(JavaTransformer javaTransformer) {
