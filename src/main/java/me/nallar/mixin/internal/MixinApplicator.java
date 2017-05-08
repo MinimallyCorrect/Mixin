@@ -150,9 +150,6 @@ public class MixinApplicator {
 	}
 
 	public void addSource(Path mixinSource, String packageName) {
-		if (transformer != null)
-			throw new IllegalStateException("Transformer already created, too late to call addSource");
-
 		List<String> current = sources.get(mixinSource);
 
 		if (current == null) {
@@ -167,16 +164,19 @@ public class MixinApplicator {
 			current.clear();
 
 		current.add(packageName);
+
+		transformer = null;
 	}
 
 	public JavaTransformer getMixinTransformer() {
-		if (this.transformer != null)
+		JavaTransformer transformer = this.transformer;
+		if (transformer != null)
 			return transformer;
 
 		val transformers = new ArrayList<Transformer.TargetedTransformer>();
 
 		for (Map.Entry<Path, List<String>> pathListEntry : sources.entrySet()) {
-			JavaTransformer transformer = new JavaTransformer();
+			transformer = new JavaTransformer();
 			transformer.addTransformer(classInfo -> {
 				if (packageNameMatches(classInfo.getName(), pathListEntry.getValue()))
 					Optional.ofNullable(MixinApplicator.this.processMixinSource(classInfo)).ifPresent(transformers::add);
@@ -185,7 +185,7 @@ public class MixinApplicator {
 			transformer.parse(pathListEntry.getKey());
 		}
 
-		JavaTransformer transformer = new JavaTransformer();
+		transformer = new JavaTransformer();
 		transformers.forEach(transformer::addTransformer);
 		if (notAppliedIsError)
 			transformer.getAfterTransform().add(this::checkForSkippedTransformers);
