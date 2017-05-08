@@ -153,6 +153,9 @@ public class MixinApplicator {
 	}
 
 	public void addSource(Path mixinSource, String packageName) {
+		if (transformer != null)
+			throw new IllegalStateException("Transformer already created, too late to call addSource");
+
 		List<String> current = sources.get(mixinSource);
 
 		if (current == null) {
