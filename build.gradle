@@ -3,7 +3,7 @@ plugins {
 	id 'maven'
 }
 project.version = '1.0-SNAPSHOT'
-project.group = 'org.minimallycorrect'
+project.group = 'org.minimallycorrect.mixin'
 
 // Extended project information
 ext.projectName = 'Mixin'
