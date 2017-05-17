@@ -1,4 +1,4 @@
-package me.nallar.mixin;
+package org.minimallycorrect.mixin;
 
 /**
  * Copies the target method

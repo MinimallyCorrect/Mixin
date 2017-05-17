@@ -1,8 +1,8 @@
-package me.nallar.mixin.internal;
+package org.minimallycorrect.mixin.internal;
 
 import lombok.*;
-import me.nallar.javatransformer.api.*;
 import me.nallar.whocalled.WhoCalled;
+import org.minimallycorrect.javatransformer.api.*;
 
 import java.nio.file.*;
 import java.util.*;
@@ -72,7 +72,7 @@ public class MixinApplicator {
 
 		for (String name : names) {
 			if (!name.contains(".")) {
-				name = "me.nallar.mixin." + name;
+				name = "org.minimallycorrect.mixin." + name;
 			}
 			addAnnotationHandler(applier, name);
 		}
@@ -104,16 +104,16 @@ public class MixinApplicator {
 		return false;
 	}
 
-	private void logInfo(String s) {
-		log.accept(s);
-	}
-
 	private static String ignoreException(Supplier<String> supplier, String name) {
 		try {
 			return supplier.get();
 		} catch (Throwable t) {
 			return "Failed to get '" + name + "' due to " + t;
 		}
+	}
+
+	private void logInfo(String s) {
+		log.accept(s);
 	}
 
 	private Stream<SortableConsumer<ClassInfo>> handleAnnotation(ClassMember annotated) {
@@ -150,12 +150,7 @@ public class MixinApplicator {
 	}
 
 	public void addSource(Path mixinSource, String packageName) {
-		List<String> current = sources.get(mixinSource);
-
-		if (current == null) {
-			current = new ArrayList<>();
-			sources.put(mixinSource, current);
-		}
+		List<String> current = sources.computeIfAbsent(mixinSource, k -> new ArrayList<>());
 
 		if (current.contains(null))
 			return;
@@ -207,7 +202,7 @@ public class MixinApplicator {
 	}
 
 	private Transformer.TargetedTransformer processMixinSource(ClassInfo clazz) {
-		List<Annotation> mixins = clazz.getAnnotations("me.nallar.mixin.Mixin");
+		List<Annotation> mixins = clazz.getAnnotations("org.minimallycorrect.mixin.Mixin");
 
 		if (mixins.size() == 0)
 			if (noMixinIsError) throw new RuntimeException("Class " + clazz.getName() + " is not an @Mixin");

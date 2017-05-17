@@ -1,16 +1,15 @@
 plugins {
 	id 'java'
 	id 'maven'
-	id 'idea'
 }
 project.version = '1.0-SNAPSHOT'
-project.group = 'me.nallar'
+project.group = 'org.minimallycorrect'
 
 // Extended project information
 ext.projectName = 'Mixin'
 ext.inceptionYear = '2016'
 ext.packaging = 'jar'
-ext.url = 'http://nallar.me/minecraft'
+ext.url = 'https://github.com/MinimallyCorrect/Mixin'
 ext.description = 'Lightweight Mixins'
 ext.organization = 'nallar.me'
 
@@ -32,7 +31,7 @@ tasks.withType(JavaCompile) {
 
 repositories {
 	jcenter()
-	maven { url='http://repo.nallar.me/' }
+	maven { url='https://repo.nallar.me/' }
 }
 
 configurations {
@@ -50,8 +49,9 @@ configurations {
 dependencies {
 	testCompile "junit:junit:4.12"
 	compile 'me.nallar.whocalled:WhoCalled:1.1'
-	compile 'me.nallar:JavaTransformer:1.8-SNAPSHOT'
-	hidden 'org.projectlombok:lombok:1.16.4'
+	compile 'org.minimallycorrect.javatransformer:JavaTransformer:1.8-SNAPSHOT'
+	compileOnly 'org.projectlombok:lombok:1.16.16'
+	testCompileOnly 'org.projectlombok:lombok:1.16.16'
 }
 
 jar {
@@ -73,4 +73,8 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 
 artifacts {
 	archives sourcesJar
+}
+
+wrapper {
+	gradleVersion = "3.5"
 }
