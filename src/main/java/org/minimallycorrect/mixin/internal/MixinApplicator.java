@@ -21,7 +21,7 @@ public class MixinApplicator {
 		}), "Mixin");
 
 		addAnnotationHandler(ClassInfo.class, SortableAnnotationApplier.of(1, (applicator, annotation, member, target) -> {
-			if (!applicator.makeAccessible)
+			if (applicator.applicationType == ApplicationType.PRE_PATCH)
 				return;
 
 			Object makePublicObject = annotation.values.get("makePublic");
@@ -51,6 +51,9 @@ public class MixinApplicator {
 				throw new MixinError("Can't override method " + member + " as it does not exist in target: " + target + "\nMethods in target: " + target.getMethods());
 			}
 
+			if (applicator.applicationType == ApplicationType.PRE_PATCH)
+				return;
+
 			target.remove(existing);
 			target.add(member);
 		}, "java.lang.Override", "OverrideStatic");
@@ -58,9 +61,9 @@ public class MixinApplicator {
 
 	private final List<TargetedTransformer> transformers = new ArrayList<>();
 	private Consumer<String> log = System.out::println;
-	private boolean makeAccessible = true;
 	private boolean noMixinIsError = false;
 	private boolean notAppliedIsError = true;
+	private ApplicationType applicationType = ApplicationType.FINAL_PATCH;
 	@Getter(AccessLevel.NONE)
 	@Setter(AccessLevel.NONE)
 	private JavaTransformer transformer;
