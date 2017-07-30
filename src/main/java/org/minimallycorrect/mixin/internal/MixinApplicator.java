@@ -21,7 +21,7 @@ public class MixinApplicator {
 		}), "Mixin");
 
 		addAnnotationHandler(ClassInfo.class, SortableAnnotationApplier.of(1, (applicator, annotation, member, target) -> {
-			if (applicator.applicationType == ApplicationType.PRE_PATCH)
+			if (applicator.applicationType == ApplicationType.FINAL_PATCH)
 				return;
 
 			Object makePublicObject = annotation.values.get("makePublic");
