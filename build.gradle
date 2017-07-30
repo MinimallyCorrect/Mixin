@@ -74,7 +74,3 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 artifacts {
 	archives sourcesJar
 }
-
-wrapper {
-	gradleVersion = "3.5"
-}
