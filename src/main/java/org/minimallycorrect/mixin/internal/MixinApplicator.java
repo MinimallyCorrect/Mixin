@@ -3,6 +3,7 @@ package org.minimallycorrect.mixin.internal;
 import lombok.*;
 import me.nallar.whocalled.WhoCalled;
 import org.minimallycorrect.javatransformer.api.*;
+import org.minimallycorrect.javatransformer.internal.SimpleMethodInfo;
 
 import java.nio.file.*;
 import java.util.*;
@@ -23,6 +24,12 @@ public class MixinApplicator {
 		addAnnotationHandler(ClassInfo.class, SortableAnnotationApplier.of(1, (applicator, annotation, member, target) -> {
 			if (applicator.applicationType == ApplicationType.FINAL_PATCH)
 				return;
+
+			// Add no-args protected constructor if there are existing constructors and none of them are no-args
+			val constructors = target.getConstructors().collect(Collectors.toList());
+			if (!constructors.isEmpty() && constructors.stream().noneMatch(it -> it.getParameters().isEmpty())) {
+				target.add(SimpleMethodInfo.of(new AccessFlags(AccessFlags.ACC_PROTECTED), Collections.emptyList(), target.getType(), "<init>", Collections.emptyList()));
+			}
 
 			Object makePublicObject = annotation.values.get("makePublic");
 			boolean makePublic = makePublicObject != null && (Boolean) makePublicObject;
