@@ -50,8 +50,8 @@ dependencies {
 	testCompile "junit:junit:4.12"
 	compile 'me.nallar.whocalled:WhoCalled:1.1'
 	compile 'org.minimallycorrect.javatransformer:JavaTransformer:1.8-SNAPSHOT'
-	compileOnly 'org.projectlombok:lombok:1.16.16'
-	testCompileOnly 'org.projectlombok:lombok:1.16.16'
+	compileOnly 'org.projectlombok:lombok:1.16.18'
+	testCompileOnly 'org.projectlombok:lombok:1.16.18'
 }
 
 jar {
