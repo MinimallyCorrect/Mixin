@@ -186,7 +186,7 @@ public class MixinApplicator {
 		transformer = new JavaTransformer();
 		transformers.forEach(transformer::addTransformer);
 		if (notAppliedIsError)
-			transformer.getAfterTransform().add(this::checkForSkippedTransformers);
+			transformer.getAfterTransform().add(javaTransformer -> checkForSkippedTransformers());
 		return this.transformer = transformer;
 	}
 
@@ -195,7 +195,7 @@ public class MixinApplicator {
 		this.log = log;
 	}
 
-	private void checkForSkippedTransformers(JavaTransformer javaTransformer) {
+	private void checkForSkippedTransformers() {
 		HashSet<Transformer.TargetedTransformer> notRan = transformers.stream()
 			.filter(targetedTransformer -> !targetedTransformer.ran).collect(Collectors.toCollection(HashSet::new));
 
@@ -225,7 +225,7 @@ public class MixinApplicator {
 			throw new MixinError(clazz.getName() + " must be abstract to use @Mixin");
 		}
 
-		List<Consumer<ClassInfo>> applicators = Stream.concat(Stream.of(clazz), clazz.getMembers().stream())
+		List<Consumer<ClassInfo>> applicators = Stream.concat(Stream.of(clazz), clazz.getMembers())
 			.flatMap(this::handleAnnotation).sorted().collect(Collectors.toList());
 
 		logInfo("Found Mixin class '" + clazz.getName() + "' targeting class '" + target + " with " + applicators.size() + " applicators.");
