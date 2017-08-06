@@ -17,7 +17,7 @@ public class MixinApplicator {
 	private static final Map<Path, List<String>> sources = new HashMap<>();
 
 	static {
-		addAnnotationHandler(ClassInfo.class, SortableAnnotationApplier.of(-1, (applicator, annotation, member, target) -> {
+		addAnnotationHandler(ClassInfo.class, SortableAnnotationApplier.of(Integer.MIN_VALUE, (applicator, annotation, member, target) -> {
 			applicator.logInfo("Handling class " + member.getName() + " with annotation " + annotation);
 		}), "Mixin");
 
