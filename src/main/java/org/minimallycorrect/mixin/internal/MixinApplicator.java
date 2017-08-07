@@ -4,8 +4,7 @@ import lombok.*;
 import me.nallar.whocalled.WhoCalled;
 import org.minimallycorrect.javatransformer.api.*;
 import org.minimallycorrect.javatransformer.internal.SimpleMethodInfo;
-import org.minimallycorrect.mixin.Add;
-import org.minimallycorrect.mixin.Mixin;
+import org.minimallycorrect.mixin.*;
 
 import java.nio.file.*;
 import java.util.*;
@@ -65,6 +64,10 @@ public class MixinApplicator {
 			target.remove(existing);
 			target.add(member);
 		}, "java.lang.Override", "OverrideStatic");
+
+		addAnnotationHandler(MethodInfo.class, Synchronize.class, (applicator, annotation, member, target) -> {
+			target.get(member).accessFlags(it -> it.with(AccessFlags.ACC_SYNCHRONIZED));
+		});
 	}
 
 	private final List<TargetedTransformer> transformers = new ArrayList<>();
