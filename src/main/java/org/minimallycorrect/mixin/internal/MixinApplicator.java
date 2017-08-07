@@ -263,10 +263,12 @@ public class MixinApplicator {
 		return transformer;
 	}
 
+	@FunctionalInterface
 	private interface AnnotationApplier<T extends ClassMember> {
 		void apply(MixinApplicator applicator, Annotation annotation, T annotatedMember, ClassInfo mixinTarget);
 	}
 
+	@FunctionalInterface
 	private interface SpecificAnnotationApplier<T extends ClassMember, A extends java.lang.annotation.Annotation> {
 		void apply(MixinApplicator applicator, A annotation, T annotatedMember, ClassInfo mixinTarget);
 	}
