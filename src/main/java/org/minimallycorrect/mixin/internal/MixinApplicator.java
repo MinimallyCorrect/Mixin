@@ -97,7 +97,7 @@ public class MixinApplicator {
 	private static MethodInfo get(MethodInfo from, ClassInfo target) {
 		val existing = target.get(from);
 		if (existing == null)
-			throw new MixinError("Can't find injectable matching " + from + " in target " + target + "\nMethods in target: " + target.getMethods());
+			throw new MixinError("Can't find method matching " + from + " in target " + target + "\nMethods in target: " + target.getMethods().collect(Collectors.toList()));
 		return existing;
 	}
 
