@@ -35,7 +35,7 @@ public class MixinApplicator {
 			boolean makePublic = annotation.makePublic();
 
 			target.accessFlags((f) -> f.makeAccessible(makePublic).without(AccessFlags.ACC_FINAL));
-			target.getMembers().forEach((it) -> it.accessFlags((f) -> f.makeAccessible(makePublic).without(AccessFlags.ACC_FINAL)));
+			target.getMembers().forEach(it -> it.accessFlags(f -> f.makeAccessible(makePublic).without(AccessFlags.ACC_FINAL | AccessFlags.ACC_SYNTHETIC)));
 		});
 
 		addAnnotationHandler(FieldInfo.class, Add.class, (applicator, annotation, member, target) -> {
@@ -51,22 +51,36 @@ public class MixinApplicator {
 			target.add(member);
 		});
 
-		addAnnotationHandler(MethodInfo.class, (applicator, annotation, member, target) -> {
-			MethodInfo existing = target.get(member);
-
-			if (existing == null) {
-				throw new MixinError("Can't override method " + member + " as it does not exist in target: " + target + "\nMethods in target: " + target.getMethods());
-			}
+		addAnnotationHandler(MethodInfo.class, Overwrite.class, (applicator, annotation, member, target) -> {
+			val existing = get(member, target);
 
 			if (applicator.applicationType == ApplicationType.PRE_PATCH)
 				return;
 
 			target.remove(existing);
 			target.add(member);
-		}, "java.lang.Override", "OverrideStatic");
+		});
 
 		addAnnotationHandler(MethodInfo.class, Synchronize.class, (applicator, annotation, member, target) -> {
 			target.get(member).accessFlags(it -> it.with(AccessFlags.ACC_SYNCHRONIZED));
+		});
+
+		addAnnotationHandler(MethodInfo.class, Inject.class, (applicator, annotation, member, target) -> {
+			val injectableName = annotation.injectable();
+			val injectableMethods = member.getClassInfo().getMethods().filter(it -> {
+				val injectables = it.getAnnotations(Injectable.class.getName());
+				if (injectables.isEmpty())
+					return false;
+				String thisInjectableName = (String) injectables.get(0).values.get("name");
+				if (thisInjectableName == null)
+					thisInjectableName = "";
+				return (it.getName().equals(injectableName) && thisInjectableName.equals("")) || it.getName().equals(thisInjectableName);
+			}).collect(Collectors.toList());
+
+			if (injectableMethods.size() != 1)
+				throw new MixinError("Couldn't find exactly 1 injectable with name " + injectableName + " in " + member.getClassInfo().getName());
+
+			Injector.inject(get(member, target), injectableMethods.get(0), annotation);
 		});
 	}
 
@@ -78,6 +92,14 @@ public class MixinApplicator {
 	@Getter(AccessLevel.NONE)
 	@Setter(AccessLevel.NONE)
 	private JavaTransformer transformer;
+
+	@NonNull
+	private static MethodInfo get(MethodInfo from, ClassInfo target) {
+		val existing = target.get(from);
+		if (existing == null)
+			throw new MixinError("Can't find injectable matching " + from + " in target " + target + "\nMethods in target: " + target.getMethods());
+		return existing;
+	}
 
 	private static void addAnnotationHandler(IndexedAnnotationApplier<?> applier, String name) {
 		if (!name.contains("."))
@@ -93,7 +115,7 @@ public class MixinApplicator {
 	@SuppressWarnings("unchecked")
 	private static <T extends ClassMember> void addAnnotationHandler(Class<T> clazz, int index, AnnotationApplier<T> applier, String... names) {
 		addAnnotationHandler((applicator, annotation, member, target) -> {
-			if (clazz.isAssignableFrom(target.getClass()))
+			if (clazz.isAssignableFrom(member.getClass()))
 				applier.apply(applicator, annotation, (T) member, target);
 		}, index, names);
 	}
@@ -190,8 +212,11 @@ public class MixinApplicator {
 		for (Map.Entry<Path, List<String>> pathListEntry : sources.entrySet()) {
 			transformer = new JavaTransformer();
 			transformer.addTransformer(classInfo -> {
-				if (packageNameMatches(classInfo.getName(), pathListEntry.getValue()))
-					Optional.ofNullable(MixinApplicator.this.processMixinSource(classInfo)).ifPresent(transformers::add);
+				if (packageNameMatches(classInfo.getName(), pathListEntry.getValue())) {
+					val source = processMixinSource(classInfo);
+					if (source != null)
+						transformers.add(source);
+				}
 			});
 
 			transformer.parse(pathListEntry.getKey());
@@ -243,6 +268,7 @@ public class MixinApplicator {
 			.flatMap(this::handleAnnotation).sorted().collect(Collectors.toList());
 
 		logInfo("Found Mixin class '" + clazz.getName() + "' targeting class '" + target + " with " + applicators.size() + " applicators.");
+		logInfo(applicators.toString());
 
 		assert !applicators.isEmpty();
 
@@ -273,26 +299,33 @@ public class MixinApplicator {
 		void apply(MixinApplicator applicator, A annotation, T annotatedMember, ClassInfo mixinTarget);
 	}
 
+	@RequiredArgsConstructor
 	@SuppressWarnings("rawtypes")
-	private interface SortableConsumer<T> extends Consumer<T>, Comparable {
-		static <T> SortableConsumer<T> of(int sortIndex, Consumer<T> consumer) {
-			return new SortableConsumer<T>() {
-				@Override
-				public int getSortIndex() {
-					return sortIndex;
-				}
+	private static class SortableConsumer<T> implements Consumer<T>, Comparable {
+		private final int sortIndex;
+		private final Consumer<T> consumer;
 
-				@Override
-				public void accept(T t) {
-					consumer.accept(t);
-				}
-			};
+		static <T> SortableConsumer<T> of(int sortIndex, Consumer<T> annotated) {
+			return new SortableConsumer<>(sortIndex, annotated);
 		}
 
-		int getSortIndex();
+		int getSortIndex() {
+			return sortIndex;
+		}
 
-		default int compareTo(Object other) {
+		@Override
+		public void accept(T t) {
+			consumer.accept(t);
+		}
+
+		@Override
+		public int compareTo(Object other) {
 			return Integer.compare(getSortIndex(), ((SortableConsumer) other).getSortIndex());
+		}
+
+		@Override
+		public String toString() {
+			return sortIndex + ": " + consumer;
 		}
 	}
 
