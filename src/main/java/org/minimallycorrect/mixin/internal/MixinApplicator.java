@@ -268,7 +268,6 @@ public class MixinApplicator {
 			.flatMap(this::handleAnnotation).sorted().collect(Collectors.toList());
 
 		logInfo("Found Mixin class '" + clazz.getName() + "' targeting class '" + target + " with " + applicators.size() + " applicators.");
-		logInfo(applicators.toString());
 
 		assert !applicators.isEmpty();
 
