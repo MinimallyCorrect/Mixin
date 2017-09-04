@@ -15,7 +15,7 @@ import java.util.stream.*;
 @Data
 public class MixinApplicator {
 	private static final Map<String, List<IndexedAnnotationApplier<? extends ClassMember>>> consumerMap = new HashMap<>();
-	private static final Map<Path, List<String>> sources = new HashMap<>();
+	private final Map<Path, List<String>> sources = new HashMap<>();
 
 	static {
 		addAnnotationHandler(ClassInfo.class, Mixin.class, Integer.MIN_VALUE, (applicator, annotation, member, target) -> {
