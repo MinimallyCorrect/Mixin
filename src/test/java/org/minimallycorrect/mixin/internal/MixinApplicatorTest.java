@@ -37,6 +37,12 @@ public class MixinApplicatorTest {
 		Assert.assertTrue("Must have at least one mixin transformer registered", transformer.getClassTransformers().size() != 0);
 	}
 
+	@Test
+	public void testSourcesShouldBeEmptyAfterNewCreated() throws Exception {
+		new MixinApplicator().addSource("org.minimallycorrect.mixin.internal.mixinsource");
+		Assert.assertEquals(0, new MixinApplicator().getSources().size());
+	}
+
 	@SneakyThrows
 	@Test
 	public void testApplication() throws Exception {
