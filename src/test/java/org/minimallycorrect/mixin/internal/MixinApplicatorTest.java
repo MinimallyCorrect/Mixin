@@ -43,6 +43,18 @@ public class MixinApplicatorTest {
 		Assert.assertEquals(0, new MixinApplicator().getSources().size());
 	}
 
+	@Test
+	public void testSearchPathShouldBeAdded() throws Exception {
+		val applicator = new MixinApplicator();
+		Assert.assertTrue("path should be added successfully", applicator.addSearchPath(Paths.get("test")));
+		Assert.assertFalse("path should not be added successfully", applicator.addSearchPath(Paths.get("test")));
+		Assert.assertFalse("path should not be added successfully", applicator.addSearchPath(Paths.get("./test")));
+		Assert.assertFalse("path should not be added successfully", applicator.addSearchPath(Paths.get("./asds/../test")));
+		val transformer = applicator.getMixinTransformer();
+		Assert.assertEquals("test", transformer.getSearchPaths().get(0).getFileName().toString());
+		Assert.assertEquals(1, transformer.getSearchPaths().size());
+	}
+
 	@SneakyThrows
 	@Test
 	public void testApplication() throws Exception {
