@@ -16,6 +16,7 @@ import java.util.stream.*;
 public class MixinApplicator {
 	private static final Map<String, List<IndexedAnnotationApplier<? extends ClassMember>>> consumerMap = new HashMap<>();
 	private final Map<Path, List<String>> sources = new HashMap<>();
+	private final Set<Path> searchPaths = new HashSet<>();
 
 	static {
 		addAnnotationHandler(ClassInfo.class, Mixin.class, Integer.MIN_VALUE, (applicator, annotation, member, target) -> {
@@ -223,6 +224,7 @@ public class MixinApplicator {
 		}
 
 		transformer = new JavaTransformer();
+		searchPaths.forEach(transformer::addSearchPath);
 		transformers.forEach(transformer::addTransformer);
 		if (notAppliedIsError)
 			transformer.getAfterTransform().add(javaTransformer -> checkForSkippedTransformers());
@@ -232,6 +234,15 @@ public class MixinApplicator {
 	public void setLog(Consumer<String> log) {
 		this.log.accept("Unregistering logger " + this.log + ", registering " + log);
 		this.log = log;
+	}
+
+	/**
+	 * Adds a search path which will be added to {@link JavaTransformer} instances created by {@link #getMixinTransformer()}
+	 *
+	 * @see JavaTransformer#addSearchPath
+	 */
+	public boolean addSearchPath(Path path) {
+		return searchPaths.add(path.normalize().toAbsolutePath());
 	}
 
 	private void checkForSkippedTransformers() {
