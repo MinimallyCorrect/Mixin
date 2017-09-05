@@ -28,6 +28,15 @@ public @interface Inject {
 
 	/**
 	 * Parameter for the injection type. May be used to set the field or method name. Not used by all types.
+	 *
+	 * For more complicated matching, use {@link #match()} and {@link Matcher}
 	 */
 	String value() default "";
+
+	/**
+	 * Name of a matcher to use. If multiple matchers have the same {@link Matcher#name()}, they will all be used.
+	 *
+	 * @see Matcher
+	 */
+	String match() default "";
 }
