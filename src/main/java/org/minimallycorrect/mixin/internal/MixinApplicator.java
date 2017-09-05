@@ -219,6 +219,7 @@ public class MixinApplicator {
 						transformers.add(source);
 				}
 			});
+			searchPaths.forEach(transformer::addSearchPath);
 
 			transformer.parse(pathListEntry.getKey());
 		}
