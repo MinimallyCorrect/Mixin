@@ -1,22 +1,22 @@
+buildscript {
+	repositories {
+		jcenter()
+		maven { url "https://plugins.gradle.org/m2/" }
+	}
+	dependencies { classpath 'org.minimallycorrect.gradle:DefaultsPlugin:0.0.32' }
+}
 plugins {
 	id 'java'
 	id 'maven'
 }
-project.version = '1.0-SNAPSHOT'
-project.group = 'org.minimallycorrect.mixin'
+apply plugin: 'org.minimallycorrect.gradle.DefaultsPlugin'
 
-// Extended project information
-ext.projectName = 'Mixin'
-ext.inceptionYear = '2016'
-ext.packaging = 'jar'
-ext.url = 'https://github.com/MinimallyCorrect/Mixin'
-ext.description = 'Lightweight Mixins'
-ext.organization = 'nallar.me'
+version = '1.0.1-SNAPSHOT'
 
-// Define variables
-ext.buildNumber = System.getenv("BUILD_NUMBER") ?: 0
-ext.ciSystem = System.getenv("JENKINS_URL") ? 'Jenkins' : 'unknown'
-ext.commit = System.getenv("GIT_COMMIT") ?: 'unknown'
+minimallyCorrectDefaults {
+	description = "Applies Mixin-style monkey patches to .java source or compiled .class files"
+	labels = ["mixin", "java", "aspect-oriented-programming", "bytecode-manipulation"]
+}()
 
 // Source compiler configuration
 tasks.withType(JavaCompile) {
@@ -31,7 +31,7 @@ tasks.withType(JavaCompile) {
 
 repositories {
 	jcenter()
-	maven { url='https://repo.nallar.me/' }
+	maven { url = 'https://repo.nallar.me/' }
 }
 
 configurations {
@@ -41,6 +41,8 @@ configurations {
 		resolutionStrategy {
 			failOnVersionConflict()
 
+			force('com.google.code.findbugs:jsr305:3.0.2')
+
 			cacheChangingModulesFor 10, 'seconds'
 		}
 	}
@@ -49,30 +51,13 @@ configurations {
 dependencies {
 	testCompile "junit:junit:4.12"
 	compile 'me.nallar.whocalled:WhoCalled:1.1'
-	compile 'org.minimallycorrect.javatransformer:JavaTransformer:1.8.3'
-	compileOnly 'org.projectlombok:lombok:1.16.18'
-	compileOnly 'org.jetbrains:annotations:15.0'
-	testCompileOnly 'org.projectlombok:lombok:1.16.18'
-	testCompileOnly 'org.jetbrains:annotations:15.0'
+	compile 'org.minimallycorrect.javatransformer:JavaTransformer:1.8.7'
 }
 
-jar {
-	baseName = project.name
-	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
-
-jar.manifest.mainAttributes(
-	"Built-By": System.properties['user.name'],
-	"Created-By": System.properties['java.vm.version'] + " (" + System.properties['java.vm.vendor'] + ")",
-	"Implementation-Title": name,
-	"Implementation-Version": version + "+" + ciSystem + "-b" + buildNumber + ".git-" + commit,
-	"Implementation-Vendor": url)
-
-task sourcesJar(type: Jar, dependsOn: classes) {
-	classifier = 'sources'
-	from sourceSets.main.allSource
-}
-
-artifacts {
-	archives sourcesJar
+// TODO: move into defaults plugin?
+// don't like the javadoc rules, not having an @return when it's obvious is valid
+if (JavaVersion.current().isJava8Compatible()) {
+	tasks.withType(Javadoc) {
+		options.addStringOption('Xdoclint:none', '-quiet')
+	}
 }
