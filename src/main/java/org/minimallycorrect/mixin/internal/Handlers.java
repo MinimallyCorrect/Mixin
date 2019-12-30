@@ -4,6 +4,5 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class Handlers {
-	public static void addHandlers() {
-	}
+	public static void addHandlers() {}
 }

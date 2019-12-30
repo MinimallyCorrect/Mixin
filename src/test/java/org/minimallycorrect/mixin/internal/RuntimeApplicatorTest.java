@@ -2,9 +2,11 @@ package org.minimallycorrect.mixin.internal;
 
 import lombok.SneakyThrows;
 import lombok.val;
+
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import org.minimallycorrect.javatransformer.api.JavaTransformer;
 import org.minimallycorrect.mixin.internal.mixinsource.PackageReference;
 
