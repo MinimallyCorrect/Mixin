@@ -1,12 +1,14 @@
 package org.minimallycorrect.mixin.internal;
 
+import java.nio.file.*;
+
 import lombok.SneakyThrows;
 import lombok.val;
+
 import org.junit.Assert;
 import org.junit.Test;
-import org.minimallycorrect.mixin.internal.mixinsource.PackageReference;
 
-import java.nio.file.*;
+import org.minimallycorrect.mixin.internal.mixinsource.PackageReference;
 
 public class MixinApplicatorTest {
 	@Test
@@ -57,6 +59,7 @@ public class MixinApplicatorTest {
 	@Test
 	public void testApplication() throws Exception {
 		val applicator = new MixinApplicator();
+		applicator.setFailOnInjectionError(false);
 		applicator.addSource("org.minimallycorrect.mixin.internal.mixinsource");
 		val transformer = applicator.getMixinTransformer();
 		transformer.load(Paths.get("src/test/java"));

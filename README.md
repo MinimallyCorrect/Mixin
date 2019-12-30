@@ -5,7 +5,7 @@ A lightweight java Mixin-style patching implementation.
 Reimplementation of the Mixin implementation used in [1.4.7 TickThreading builds.](https://github.com/nallar/TickThreading).
 Now with 100% less regex-based Java parsing, thanks to [Java Parser](https://github.com/javaparser/javaparser).
 
-Copyright &copy; 2016, nallar <git@nyx.nova.fail>
+Copyright &copy; 2016, nallar <lunaa@moonstruck.dev>
 Mixin is licensed under the MIT license.
 
 Download

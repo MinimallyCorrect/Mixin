@@ -3,8 +3,7 @@ package org.minimallycorrect.mixin;
 import java.lang.annotation.*;
 
 /**
- * Indicates that this method is used to provide a code fragment to match against code fragments in another method
- * to find an injection target
+ * Indicates that this method is used to provide a code fragment to match against code fragments in another method to find an injection target
  */
 @java.lang.annotation.Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)

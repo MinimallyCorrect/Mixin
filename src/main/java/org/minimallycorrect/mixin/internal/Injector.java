@@ -1,12 +1,13 @@
 package org.minimallycorrect.mixin.internal;
 
 import lombok.val;
+
 import org.minimallycorrect.javatransformer.api.MethodInfo;
 import org.minimallycorrect.javatransformer.api.code.CodeFragment;
 import org.minimallycorrect.mixin.Inject;
 
 class Injector {
-	static void inject(MethodInfo target, MethodInfo injectable, Inject inject) {
+	static void inject(MethodInfo target, MethodInfo injectable, Inject inject, boolean failOnError) {
 		val targetFragment = target.getCodeFragment();
 		val injectableFragment = injectable.getCodeFragment();
 
@@ -32,7 +33,12 @@ class Injector {
 				try {
 					fragment.insert(injectableFragment, inject.position().getPosition());
 				} catch (Throwable t) {
-					throw new MixinError("Failed to inject " + injectable + " into " + fragment + " in " + target + " with " + inject, t);
+					val message = "Failed to inject " + injectable + " into " + fragment + " in " + target + " with " + inject;
+					if (failOnError) {
+						throw new MixinError(message, t);
+					}
+					System.err.println(message);
+					t.printStackTrace();
 				}
 			i++;
 		}

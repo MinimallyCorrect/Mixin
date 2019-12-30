@@ -1,15 +1,18 @@
 package org.minimallycorrect.mixin.internal;
 
-import lombok.*;
-import me.nallar.whocalled.WhoCalled;
-import org.minimallycorrect.javatransformer.api.*;
-import org.minimallycorrect.javatransformer.internal.SimpleMethodInfo;
-import org.minimallycorrect.mixin.*;
-
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
+
+import lombok.*;
+
+import org.minimallycorrect.javatransformer.api.*;
+import org.minimallycorrect.javatransformer.internal.ClassPaths;
+import org.minimallycorrect.javatransformer.internal.SimpleMethodInfo;
+import org.minimallycorrect.mixin.*;
+
+import me.nallar.whocalled.WhoCalled;
 
 @SuppressWarnings("CodeBlock2Expr")
 @Data
@@ -19,7 +22,9 @@ public class MixinApplicator {
 	/**
 	 * A {@link ClassPath} which will be added to {@link JavaTransformer} instances created by {@link #getMixinTransformer()}
 	 */
-	private final ClassPath classPath = new ClassPath();
+	private final ClassPath classPath = ClassPaths.of(ClassPaths.SystemClassPath.SYSTEM_CLASS_PATH, new Path[0]);
+	// TODO: temporary way to allow source patching, should be replaced with error handling callback(s)
+	private boolean failOnInjectionError;
 
 	static {
 		addAnnotationHandler(ClassInfo.class, Mixin.class, Integer.MIN_VALUE, (applicator, annotation, member, target) -> {
@@ -86,7 +91,7 @@ public class MixinApplicator {
 			if (injectableMethods.size() != 1)
 				throw new MixinError("Couldn't find exactly 1 injectable with name " + injectableName + " in " + member.getClassInfo().getName());
 
-			Injector.inject(get(member, target), injectableMethods.get(0), annotation);
+			Injector.inject(get(member, target), injectableMethods.get(0), annotation, applicator.failOnInjectionError);
 		});
 	}
 
@@ -255,8 +260,10 @@ public class MixinApplicator {
 		List<Annotation> mixins = clazz.getAnnotations("org.minimallycorrect.mixin.Mixin");
 
 		if (mixins.size() == 0)
-			if (noMixinIsError) throw new RuntimeException("Class " + clazz.getName() + " is not an @Mixin");
-			else return null;
+			if (noMixinIsError)
+				throw new RuntimeException("Class " + clazz.getName() + " is not an @Mixin");
+			else
+				return null;
 
 		if (mixins.size() > 1)
 			throw new MixinError(clazz.getName() + " can not use @Mixin multiple times");
