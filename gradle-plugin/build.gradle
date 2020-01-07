@@ -1,0 +1,28 @@
+plugins {
+	id 'groovy'
+	id 'java'
+	id 'java-gradle-plugin'
+	id 'org.minimallycorrect.gradle.DefaultsPlugin'
+}
+
+minimallyCorrectDefaults {
+	shipkit = false
+}()
+
+dependencies {
+	//compileOnly 'com.google.guava:guava:25.1-jre' // bundled with gradle
+	implementation rootProject
+	testImplementation('org.spockframework:spock-core:1.3-groovy-2.4') {
+		exclude module: 'groovy-all'
+	}
+	testImplementation('io.github.classgraph:classgraph:4.8.59')
+}
+
+gradlePlugin {
+	plugins {
+		mixinGradlePlugin {
+			id = 'org.minimallycorrect.mixin.gradle-plugin'
+			implementationClass = 'org.minimallycorrect.mixinplugin.MixinGradlePlugin'
+		}
+	}
+}

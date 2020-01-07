@@ -1,0 +1,28 @@
+plugins {
+	id 'java'
+	id 'org.minimallycorrect.mixin.gradle-plugin'
+}
+def includes = fileTree(dir: 'libs', include: ['*.jar'])
+allprojects {
+	apply plugin: 'java'
+	repositories {
+		jcenter()
+	}
+	dependencies {
+		testImplementation "junit:junit:4.12"
+		implementation 'com.google.guava:guava:25.1-jre'
+		implementation includes
+	}
+	// java plugin extension added after gradle 4.2.1
+//	java {
+		sourceCompatibility = JavaVersion.VERSION_1_8
+		targetCompatibility = JavaVersion.VERSION_1_8
+//	}
+}
+mixin {
+	target("mixins", [dependencies.create('com.google.guava:guava:25.1-jre')])
+}
+test {
+	testLogging.showStandardStreams = true
+	testLogging.exceptionFormat = 'full'
+}

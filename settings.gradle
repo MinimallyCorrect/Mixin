@@ -1,1 +1,2 @@
 rootProject.name = 'Mixin'
+include 'gradle-plugin'
