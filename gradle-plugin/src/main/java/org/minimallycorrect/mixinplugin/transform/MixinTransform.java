@@ -11,6 +11,7 @@ import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
@@ -24,9 +25,7 @@ public abstract class MixinTransform implements TransformAction<MixinTransform.P
 
 	public interface Parameters extends TransformParameters {
 		@Nested
-		Map<String, ApplyMixins> getPerDependencyApplyMixins();
-
-		void setPerDependencyApplyMixins(Map<String, ApplyMixins> value);
+		MapProperty<String, ApplyMixins> getPerDependencyApplyMixins();
 
 		@Input
 		String getArtifactType();
@@ -54,7 +53,7 @@ public abstract class MixinTransform implements TransformAction<MixinTransform.P
 			logger.warn("Exception guessing id of " + input, throwable);
 		}
 
-		val applier = getParameters().getPerDependencyApplyMixins().get(id);
+		val applier = id == null ? null : getParameters().getPerDependencyApplyMixins().getting(id).getOrNull();
 
 		if (applier == null) {
 			outputs.file(input);

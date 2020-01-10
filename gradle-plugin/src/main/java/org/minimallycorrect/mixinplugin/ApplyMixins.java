@@ -26,7 +26,7 @@ public abstract class ApplyMixins {
 	@Classpath
 	@InputFiles
 	@NonNull
-	public abstract Property<ConfigurableFileCollection> getMixinSource();
+	public abstract ConfigurableFileCollection getMixinSource();
 
 	/*
 	removed this cache in case it's causing trouble
@@ -44,7 +44,7 @@ public abstract class ApplyMixins {
 		if (logger != null) {
 			applicator.setLog(logger::info);
 		}
-		for (File file : getMixinSource().get().getFiles()) {
+		for (File file : getMixinSource().getFiles()) {
 			applicator.addSource(file.toPath());
 		}
 		applicator.setApplicationType(getApplicationType().get());

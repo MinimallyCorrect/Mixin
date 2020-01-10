@@ -52,7 +52,7 @@ public class MixinGradlePlugin implements Plugin<Project> {
 			it.getTo().attribute(artifactType, type).attribute(mixined, true);
 
 			it.parameters(params -> {
-				params.setPerDependencyApplyMixins(applyMixinsMap);
+				params.getPerDependencyApplyMixins().putAll(applyMixinsMap);
 				params.setArtifactType(type);
 				params.setCacheBust(LocalDate.now().toString());
 			});
@@ -76,9 +76,7 @@ public class MixinGradlePlugin implements Plugin<Project> {
 		val mixinsTask = project.getTasks().getByName("applySubprojectMixins");
 		val allMixedinCfg = project.getConfigurations().create("mixedin");
 
-		// if we're using transform, use the abstract class which gradle makes getters for properties
-		// older gradle needs the concrete one
-		Class<? extends ApplyMixins> applyMixinsClass = useTransforms ? ApplyMixins.class : ApplyMixinsImpl.class;
+
 		project.getConfigurations().getByName("implementation").extendsFrom(allMixedinCfg);
 
 		settings.targets.forEach((subproject, deps) -> {
@@ -94,8 +92,11 @@ public class MixinGradlePlugin implements Plugin<Project> {
 			mixinProject.getPlugins().apply(JavaPlugin.class);
 
 			val sourceSet = mixinProject.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main");
-			val preApplyMixins = project.getObjects().newInstance(applyMixinsClass);
-			preApplyMixins.getMixinSource().set(project.files().from(sourceSet.getAllJava().getSourceDirectories()));
+
+			// if we're using transform, use the abstract class which gradle makes getters for properties
+			// older gradle needs the concrete one
+			ApplyMixins preApplyMixins = useTransforms ? project.getObjects().newInstance(ApplyMixins.class) : new ApplyMixinsImpl(project.getObjects(), project.files());
+			preApplyMixins.getMixinSource().from(sourceSet.getAllJava().getSourceDirectories());
 			preApplyMixins.getApplicationType().set(ApplicationType.PRE_PATCH);
 			val preApplyMixinsRepo = new ApplyMixinsRepo(preApplyMixins, new File(mixinProject.getBuildDir(), "mixin-pre"), mixinTargetsCfg);
 
@@ -103,8 +104,8 @@ public class MixinGradlePlugin implements Plugin<Project> {
 			mixinPrePatchedCfg.getDependencies().addAll(preApplyMixinTask.getGeneratedDependenciesForOutputs(mixinProject, preApplyMixinTask));
 			mixinProject.getConfigurations().getByName("implementation").extendsFrom(mixinPrePatchedCfg);
 
-			val applyMixins = project.getObjects().newInstance(applyMixinsClass);
-			applyMixins.getMixinSource().set(project.files().from(mixinProject.getTasks().getByName("jar").getOutputs().getFiles()));
+			ApplyMixins applyMixins = useTransforms ? project.getObjects().newInstance(ApplyMixins.class) : new ApplyMixinsImpl(project.getObjects(), project.files());
+			applyMixins.getMixinSource().from(mixinProject.getTasks().getByName("jar").getOutputs().getFiles());
 			applyMixins.getApplicationType().set(ApplicationType.FINAL_PATCH);
 			val applyMixinsRepo = new ApplyMixinsRepo(applyMixins, new File(mixinProject.getBuildDir(), "mixin"), mixinTargetsCfg);
 			val mixinTask = mixinProject.getTasks().create("applyMixins", ApplyMixinsTask.class, it -> it.getApplyMixinsRepo().set(applyMixinsRepo));

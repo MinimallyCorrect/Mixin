@@ -22,12 +22,12 @@ public class ApplyMixinsImpl extends ApplyMixins {
 
 	@InputFiles
 	@Classpath
-	private final Property<ConfigurableFileCollection> mixinSource;
+	private final ConfigurableFileCollection mixinSource;
 
 	@Inject
-	public ApplyMixinsImpl(ObjectFactory objectFactory) {
+	public ApplyMixinsImpl(ObjectFactory objectFactory, ConfigurableFileCollection mixinSource) {
 		applicationType = objectFactory.property(ApplicationType.class);
-		mixinSource = objectFactory.property(ConfigurableFileCollection.class);
+		this.mixinSource = mixinSource;
 	}
 
 	@NonNull
@@ -39,7 +39,7 @@ public class ApplyMixinsImpl extends ApplyMixins {
 	@NonNull
 	@InputFiles
 	@Classpath
-	public Property<ConfigurableFileCollection> getMixinSource() {
+	public ConfigurableFileCollection getMixinSource() {
 		return this.mixinSource;
 	}
 }
