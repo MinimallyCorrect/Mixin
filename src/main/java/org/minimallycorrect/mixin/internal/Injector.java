@@ -1,5 +1,6 @@
 package org.minimallycorrect.mixin.internal;
 
+import lombok.NonNull;
 import lombok.val;
 
 import org.minimallycorrect.javatransformer.api.MethodInfo;
@@ -7,13 +8,22 @@ import org.minimallycorrect.javatransformer.api.code.CodeFragment;
 import org.minimallycorrect.mixin.Inject;
 
 class Injector {
-	static void inject(MethodInfo target, MethodInfo injectable, Inject inject, boolean failOnError) {
+	static void inject(@NonNull MethodInfo target, @NonNull MethodInfo injectable, Inject inject, boolean failOnError) {
 		val targetFragment = target.getCodeFragment();
 		val injectableFragment = injectable.getCodeFragment();
 
-		if (targetFragment == null || injectableFragment == null)
-			// TODO: log?/throw?
+		if (targetFragment == null || injectableFragment == null) {
+			val message = "Null fragments for:" +
+				"\n\ttarget =" + target +
+				"\n\ttargetFragment =" + targetFragment +
+				"\n\tinjectable = " + injectable +
+				"\n\tinjectable = " + injectableFragment;
+			if (failOnError) {
+				throw new MixinError(message);
+			}
+			System.err.println(message);
 			return;
+		}
 
 		val fragments = targetFragment.findFragments(inject.type().getFragmentClass());
 

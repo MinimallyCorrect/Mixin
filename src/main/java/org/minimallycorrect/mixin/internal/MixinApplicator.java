@@ -10,6 +10,7 @@ import lombok.*;
 import org.minimallycorrect.javatransformer.api.*;
 import org.minimallycorrect.javatransformer.internal.ClassPaths;
 import org.minimallycorrect.javatransformer.internal.SimpleMethodInfo;
+import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
 import org.minimallycorrect.mixin.*;
 
 import me.nallar.whocalled.WhoCalled;
@@ -19,12 +20,13 @@ import me.nallar.whocalled.WhoCalled;
 public class MixinApplicator {
 	private static final Map<String, List<IndexedAnnotationApplier<? extends ClassMember>>> consumerMap = new HashMap<>();
 	private final Map<Path, List<String>> sources = new HashMap<>();
+	private static final ClassPath mixinClassPath = ClassPaths.of(ClassPaths.SystemClassPath.SYSTEM_CLASS_PATH, JavaTransformer.pathFromClass(Mixin.class));
 	/**
 	 * A {@link ClassPath} which will be added to {@link JavaTransformer} instances created by {@link #getMixinTransformer()}
 	 */
-	private final ClassPath classPath = ClassPaths.of(ClassPaths.SystemClassPath.SYSTEM_CLASS_PATH, new Path[0]);
+	private ClassPath classPath = ClassPaths.of(mixinClassPath);
 	// TODO: temporary way to allow source patching, should be replaced with error handling callback(s)
-	private boolean failOnInjectionError;
+	private boolean failOnInjectionError = true;
 
 	static {
 		addAnnotationHandler(ClassInfo.class, Mixin.class, Integer.MIN_VALUE, (applicator, annotation, member, target) -> {
@@ -46,6 +48,22 @@ public class MixinApplicator {
 			target.accessFlags((f) -> f.makeAccessible(makePublic).without(AccessFlags.ACC_FINAL));
 			target.getMembers().forEach(it -> it.accessFlags(f -> f.makeAccessible(makePublic).without(AccessFlags.ACC_FINAL | AccessFlags.ACC_SYNTHETIC)));
 		});
+
+		addAnnotationHandler(ClassMember.class, Flags.class, 2, ((applicator, annotation, annotatedMember, mixinTarget) -> {
+			val flags = JVMUtil.accessStringToInt(annotation.flags());
+			val member = annotatedMember instanceof ClassInfo ? mixinTarget : mixinTarget.get(annotatedMember);
+			switch (annotation.mode()) {
+				case ADD:
+					member.accessFlags(f -> f.with(flags));
+					break;
+				case REMOVE:
+					member.accessFlags(f -> f.without(flags));
+					break;
+				case SET:
+					member.setAccessFlags(new AccessFlags(flags));
+					break;
+			}
+		}));
 
 		addAnnotationHandler(FieldInfo.class, Add.class, 2, (applicator, annotation, member, target) -> {
 			String name = member.getName();
@@ -103,6 +121,9 @@ public class MixinApplicator {
 	@Getter(AccessLevel.NONE)
 	@Setter(AccessLevel.NONE)
 	private JavaTransformer transformer;
+	@Getter(AccessLevel.NONE)
+	@Setter(AccessLevel.NONE)
+	private boolean setLog;
 
 	@NonNull
 	private static MethodInfo get(MethodInfo from, ClassInfo target) {
@@ -202,6 +223,8 @@ public class MixinApplicator {
 	public void addSource(Path mixinSource, String packageName) {
 		List<String> current = sources.computeIfAbsent(mixinSource, k -> new ArrayList<>());
 
+		transformer = null;
+
 		if (current.contains(null))
 			return;
 
@@ -209,8 +232,6 @@ public class MixinApplicator {
 			current.clear();
 
 		current.add(packageName);
-
-		transformer = null;
 	}
 
 	public JavaTransformer getMixinTransformer() {
@@ -234,6 +255,8 @@ public class MixinApplicator {
 			transformer.parse(pathListEntry.getKey());
 		}
 
+		logInfo("Found " + transformers.size() + " transformers in " + sources);
+
 		transformer = new JavaTransformer();
 		transformer.setClassPath(classPath);
 		transformers.forEach(transformer::addTransformer);
@@ -243,7 +266,10 @@ public class MixinApplicator {
 	}
 
 	public void setLog(Consumer<String> log) {
-		this.log.accept("Unregistering logger " + this.log + ", registering " + log);
+		if (setLog) {
+			this.log.accept("Unregistering logger " + this.log + ", registering " + log);
+		}
+		setLog = true;
 		this.log = log;
 	}
 
