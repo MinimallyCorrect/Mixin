@@ -3,61 +3,65 @@ buildscript {
 		jcenter()
 		maven { url "https://plugins.gradle.org/m2/" }
 	}
-	dependencies { classpath 'org.minimallycorrect.gradle:DefaultsPlugin:0.0.32' }
+	dependencies { classpath 'org.minimallycorrect.gradle:DefaultsPlugin:0.0.45' }
 }
 plugins {
 	id 'java'
+	id 'java-library'
 	id 'maven'
 }
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
 apply plugin: 'org.minimallycorrect.gradle.DefaultsPlugin'
 
-version = '1.0.1-SNAPSHOT'
+group = 'org.minimallycorrect.mixin'
 
 minimallyCorrectDefaults {
 	description = "Applies Mixin-style monkey patches to .java source or compiled .class files"
 	labels = ["mixin", "java", "aspect-oriented-programming", "bytecode-manipulation"]
 }()
 
-// Source compiler configuration
-tasks.withType(JavaCompile) {
-	sourceCompatibility = 8
-	targetCompatibility = 8
-	options.with {
-		deprecation = true
-		encoding = 'UTF-8'
-		compilerArgs << "-Xlint:all" << "-Xlint:-path" << "-Xlint:-processing"
+allprojects {
+	tasks.withType(Test).all {
+		maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+
+		testLogging {
+			events TestLogEvent.FAILED,
+				TestLogEvent.SKIPPED
+			exceptionFormat TestExceptionFormat.FULL
+			showCauses true
+			showExceptions true
+			showStackTraces true
+			showStandardStreams true
+		}
 	}
-}
 
-repositories {
-	jcenter()
-	maven { url = 'https://repo.nallar.me/' }
-}
+	configurations {
+		all {
+			resolutionStrategy {
+				failOnVersionConflict()
 
-configurations {
-	hidden
-	compile.extendsFrom hidden
-	all {
-		resolutionStrategy {
-			failOnVersionConflict()
+				force('com.google.code.findbugs:jsr305:3.0.2')
 
-			force('com.google.code.findbugs:jsr305:3.0.2')
-
-			cacheChangingModulesFor 10, 'seconds'
+				cacheChangingModulesFor 10, 'seconds'
+			}
 		}
 	}
 }
 
 dependencies {
-	testCompile "junit:junit:4.12"
-	compile 'me.nallar.whocalled:WhoCalled:1.1'
-	compile 'org.minimallycorrect.javatransformer:JavaTransformer:1.8.7'
+	testImplementation "junit:junit:4.12"
+	implementation 'me.nallar.whocalled:WhoCalled:1.1'
+	api 'org.minimallycorrect.javatransformer:JavaTransformer:1.8.12'
 }
 
-// TODO: move into defaults plugin?
-// don't like the javadoc rules, not having an @return when it's obvious is valid
-if (JavaVersion.current().isJava8Compatible()) {
-	tasks.withType(Javadoc) {
-		options.addStringOption('Xdoclint:none', '-quiet')
-	}
+// fails with shipkit
+// https://github.com/mockito/shipkit/issues/847
+/*
+def gradlePluginJar = tasks.getByPath(':gradle-plugin:jar')
+gradlePluginJar.getArchiveClassifier().set("gradle-plugin")
+artifacts {
+	add("archives", gradlePluginJar)
 }
+*/
