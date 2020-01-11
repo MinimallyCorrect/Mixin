@@ -3,7 +3,7 @@ buildscript {
 		jcenter()
 		maven { url "https://plugins.gradle.org/m2/" }
 	}
-	dependencies { classpath 'org.minimallycorrect.gradle:DefaultsPlugin:0.0.45' }
+	dependencies { classpath 'org.minimallycorrect.gradle:DefaultsPlugin:0.0.51' }
 }
 plugins {
 	id 'java'
@@ -20,7 +20,8 @@ group = 'org.minimallycorrect.mixin'
 minimallyCorrectDefaults {
 	description = "Applies Mixin-style monkey patches to .java source or compiled .class files"
 	labels = ["mixin", "java", "aspect-oriented-programming", "bytecode-manipulation"]
-}()
+	configureProject(project)
+}
 
 allprojects {
 	tasks.withType(Test).all {
