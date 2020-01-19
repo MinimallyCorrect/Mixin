@@ -42,10 +42,6 @@ allprojects {
 		all {
 			resolutionStrategy {
 				failOnVersionConflict()
-
-				force('com.google.code.findbugs:jsr305:3.0.2')
-
-				cacheChangingModulesFor 10, 'seconds'
 			}
 		}
 	}
@@ -54,7 +50,7 @@ allprojects {
 dependencies {
 	testImplementation "junit:junit:4.12"
 	implementation 'me.nallar.whocalled:WhoCalled:1.1'
-	api 'org.minimallycorrect.javatransformer:JavaTransformer:1.8.12'
+	api 'org.minimallycorrect.javatransformer:JavaTransformer:1.8.15'
 }
 
 // fails with shipkit

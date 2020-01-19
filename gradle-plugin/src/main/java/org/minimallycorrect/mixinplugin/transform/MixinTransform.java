@@ -1,7 +1,6 @@
 package org.minimallycorrect.mixinplugin.transform;
 
 import java.io.File;
-import java.util.Map;
 
 import lombok.NonNull;
 import lombok.val;

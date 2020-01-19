@@ -76,7 +76,6 @@ public class MixinGradlePlugin implements Plugin<Project> {
 		val mixinsTask = project.getTasks().getByName("applySubprojectMixins");
 		val allMixedinCfg = project.getConfigurations().create("mixedin");
 
-
 		project.getConfigurations().getByName("implementation").extendsFrom(allMixedinCfg);
 
 		settings.targets.forEach((subproject, deps) -> {
