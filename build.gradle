@@ -3,7 +3,7 @@ buildscript {
 		jcenter()
 		maven { url "https://plugins.gradle.org/m2/" }
 	}
-	dependencies { classpath 'org.minimallycorrect.gradle:DefaultsPlugin:0.0.51' }
+	dependencies { classpath 'org.minimallycorrect.gradle:DefaultsPlugin:0.0.52' }
 }
 plugins {
 	id 'java'
@@ -42,10 +42,6 @@ allprojects {
 		all {
 			resolutionStrategy {
 				failOnVersionConflict()
-
-				force('com.google.code.findbugs:jsr305:3.0.2')
-
-				cacheChangingModulesFor 10, 'seconds'
 			}
 		}
 	}
@@ -54,15 +50,5 @@ allprojects {
 dependencies {
 	testImplementation "junit:junit:4.12"
 	implementation 'me.nallar.whocalled:WhoCalled:1.1'
-	api 'org.minimallycorrect.javatransformer:JavaTransformer:1.8.12'
+	api 'org.minimallycorrect.javatransformer:JavaTransformer:1.8.15'
 }
-
-// fails with shipkit
-// https://github.com/mockito/shipkit/issues/847
-/*
-def gradlePluginJar = tasks.getByPath(':gradle-plugin:jar')
-gradlePluginJar.getArchiveClassifier().set("gradle-plugin")
-artifacts {
-	add("archives", gradlePluginJar)
-}
-*/
