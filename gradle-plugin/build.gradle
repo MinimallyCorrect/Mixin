@@ -5,6 +5,8 @@ plugins {
 	id 'org.minimallycorrect.gradle.DefaultsPlugin'
 }
 
+group = 'org.minimallycorrect.mixin'
+
 minimallyCorrectDefaults {
 	shipkit = false
 	configureProject(project)
