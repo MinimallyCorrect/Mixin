@@ -1,0 +1,69 @@
+
+import groovy.xml.QName
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
+
+group = 'dev.minco.mixin'
+
+configurations.compile.dependencies.remove dependencies.gradleApi()
+configurations.all { it.dependencies.remove project.dependencies.gradleApi() }
+dependencies { compileOnly gradleApi() }
+
+//task relocateShadowJar(type: ConfigureShadowRelocation) {
+//	target = tasks.shadowJar
+//}
+//
+//tasks.shadowJar.dependsOn tasks.relocateShadowJar
+
+shadowJar {
+	relocate 'org.objectweb.asm', 'org.minimallycorrect.s.asm'
+	minimize()
+}
+
+dependencies {
+	//compileOnly 'com.google.guava:guava:25.1-jre' // bundled with gradle
+	implementation parent
+	testImplementation('org.spockframework:spock-core:1.3-groovy-2.4') {
+		exclude module: 'groovy-all'
+	}
+	testImplementation('io.github.classgraph:classgraph:4.8.59')
+}
+
+gradlePlugin {
+	plugins {
+		mixinGradlePlugin {
+			id = 'dev.minco.gradle.mixin-plugin'
+			implementationClass = 'dev.minco.gradle.mixin.MixinGradlePlugin'
+		}
+	}
+}
+
+afterEvaluate {
+	extensions.getByType(PublishingExtension.class).publications {
+		matching { it.getName() == "javaLibrary" }.withType(MavenPublication.class).all {
+			def f = (DefaultMavenPublication.class).getDeclaredField("component")
+			//f.setAccessible(true)
+			//f.set(it, null)
+			project.shadow.component(it)
+			it.getPom().withXml({ x ->
+				def n = x.asNode()
+				new ArrayList(n.children()).forEach { child ->
+					def name = ((Node) child).name()
+					if (name instanceof QName) {
+						name = ((QName) name).localPart
+					}
+					for (def ochild : n.children()) {
+
+						def oname = ((Node) ochild).name()
+						if (oname instanceof QName) {
+							oname = ((QName) oname).localPart
+						}
+						if (ochild != child && oname == name) {
+							n.remove((Node) ochild)
+							break
+						}
+					}
+				}
+			})
+		}
+	}
+}

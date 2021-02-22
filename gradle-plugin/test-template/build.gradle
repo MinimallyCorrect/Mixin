@@ -1,12 +1,12 @@
 plugins {
 	id 'java'
-	id 'org.minimallycorrect.mixin.gradle-plugin'
+	id 'dev.minco.gradle.mixin-plugin'
 }
 def includes = fileTree(dir: 'libs', include: ['*.jar'])
 allprojects {
 	apply plugin: 'java'
 	repositories {
-		jcenter()
+		mavenCentral()
 	}
 	dependencies {
 		testImplementation "junit:junit:4.12"
