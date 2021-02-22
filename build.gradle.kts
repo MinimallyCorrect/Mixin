@@ -67,7 +67,7 @@ allprojects {
 
 
 dependencies {
-	testImplementation("junit:junit:4.12")
+	testImplementation("junit:junit:4.13.2")
 	implementation("me.nallar.whocalled:WhoCalled:1.1")
 	api("dev.minco:java-transformer:1.10.1")
 
