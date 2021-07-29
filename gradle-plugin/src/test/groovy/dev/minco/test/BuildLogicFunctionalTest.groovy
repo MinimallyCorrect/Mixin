@@ -59,6 +59,8 @@ class BuildLogicFunctionalTest extends Specification {
 		where:
 		gradleVersion | maxJdkVersion
 		null | null
+		// JDK 16
+		"7.1.1" | JavaVersion.VERSION_16
 		// first version with JDK 15 support
 		"6.7.1" | JavaVersion.VERSION_15
 		// first version with working @Nested in a managed type
