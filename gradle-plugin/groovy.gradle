@@ -4,8 +4,8 @@ import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
 
 group = 'dev.minco.mixin'
 
-configurations.compile.dependencies.remove dependencies.gradleApi()
-configurations.all { it.dependencies.remove project.dependencies.gradleApi() }
+//configurations.compile.dependencies.remove dependencies.gradleApi()
+//configurations.all { it.dependencies.remove project.dependencies.gradleApi() }
 dependencies { compileOnly gradleApi() }
 
 //task relocateShadowJar(type: ConfigureShadowRelocation) {
@@ -22,7 +22,10 @@ shadowJar {
 dependencies {
 	//compileOnly 'com.google.guava:guava:25.1-jre' // bundled with gradle
 	implementation parent
-	testImplementation('org.spockframework:spock-core:1.3-groovy-2.4') {
+	testImplementation('org.spockframework:spock-core:2.0-groovy-3.0') {
+		exclude module: 'groovy-all'
+	}
+	testImplementation('org.spockframework:spock-junit4:2.0-groovy-3.0') {
 		exclude module: 'groovy-all'
 	}
 	testImplementation('io.github.classgraph:classgraph:4.8.59')

@@ -10,8 +10,9 @@ plugins {
 apply(from = "groovy.gradle")
 
 dependencies {
-	val lombok = "org.projectlombok:lombok:1.18.18"
-	implementation(lombok)
+	val lombok = "org.projectlombok:lombok:1.18.20"
+	compileOnly(lombok)
+	testCompileOnly(lombok)
 	annotationProcessor(lombok)
 	testAnnotationProcessor(lombok)
 }
