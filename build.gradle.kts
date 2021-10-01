@@ -9,7 +9,7 @@ plugins {
 	id("org.shipkit.shipkit-auto-version") version "1.1.1"
 	id("org.shipkit.shipkit-changelog") version "1.1.4"
 	id("org.shipkit.shipkit-github-release") version "1.1.4"
-	id("dev.minco.gradle.defaults-plugin") version "0.2.27"
+	id("dev.minco.gradle.defaults-plugin") version "0.2.34"
 }
 
 apply(from = "properties.gradle")
