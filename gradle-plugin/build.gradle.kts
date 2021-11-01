@@ -15,7 +15,7 @@ dependencies {
 	testImplementation("org.spockframework:spock-junit4")
 	testImplementation("junit:junit:4.13.2")
 
-	val lombok = "org.projectlombok:lombok:1.18.20"
+	val lombok = "org.projectlombok:lombok:1.18.22"
 	compileOnly(lombok)
 	testCompileOnly(lombok)
 	annotationProcessor(lombok)
