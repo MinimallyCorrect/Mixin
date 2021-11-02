@@ -22,7 +22,7 @@ jobs:
             matrix:
                 jdk: [11, 17]
         steps:
-            - uses: actions/checkout@1e204e9a9253d643386038d443f96446fa156a97 # renovate: tag=v2
+            - uses: actions/checkout@1e204e9a9253d643386038d443f96446fa156a97 # renovate: tag=v2.3.5
             - uses: actions/cache@c64c572235d810460d0d6876e9c705ad5002b353 # renovate: tag=v2.1.6
               with:
                 path: |
@@ -32,7 +32,7 @@ jobs:
                 restore-keys: |
                     ${{ runner.os }}-jdk-${{ matrix.jdk }}-gradlewrapper-${{ hashFiles('**/gradle-wrapper.properties') }}-gradlescripts-
             - name: Set up JDK
-              uses: actions/setup-java@8db439b6b47e5e12312bf036760bbaa6893481ac # renovate: tag=v2
+              uses: actions/setup-java@8db439b6b47e5e12312bf036760bbaa6893481ac # renovate: tag=v2.3.1
               with:
                   distribution: zulu
                   java-version: ${{ matrix.jdk }}
@@ -50,7 +50,7 @@ jobs:
 
         steps:
             - name: Check out code
-              uses: actions/checkout@1e204e9a9253d643386038d443f96446fa156a97 # renovate: tag=v2
+              uses: actions/checkout@1e204e9a9253d643386038d443f96446fa156a97 # renovate: tag=v2.3.5
               with:
                   fetch-depth: '0' # https://github.com/shipkit/shipkit-changelog#fetch-depth-on-ci
 
@@ -62,7 +62,7 @@ jobs:
                 key: releasing-${{ runner.os }}-jdk-${{ matrix.jdk }}-gradlewrapper-${{ hashFiles('**/gradle-wrapper.properties') }}-gradlescripts-${{ hashFiles('**/*.gradle*') }}
 
             - name: Set up Java 11
-              uses: actions/setup-java@8db439b6b47e5e12312bf036760bbaa6893481ac # renovate: tag=v2
+              uses: actions/setup-java@8db439b6b47e5e12312bf036760bbaa6893481ac # renovate: tag=v2.3.1
               with:
                   distribution: zulu
                   java-version: 11
