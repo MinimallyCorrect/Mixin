@@ -5,7 +5,7 @@ plugins {
 	id("java")
 	id("java-library")
 	id("maven-publish")
-	id("com.github.johnrengelman.shadow") version "7.0.0" apply false
+	id("com.github.johnrengelman.shadow") version "7.1.0" apply false
 	id("org.shipkit.shipkit-auto-version") version "1.1.19"
 	id("org.shipkit.shipkit-changelog") version "1.1.15"
 	id("org.shipkit.shipkit-github-release") version "1.1.15"
