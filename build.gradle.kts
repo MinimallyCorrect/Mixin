@@ -69,7 +69,7 @@ allprojects {
 dependencies {
 	testImplementation("junit:junit:4.13.2")
 	implementation("me.nallar.whocalled:WhoCalled:1.1")
-	api("dev.minco:java-transformer:1.10.28")
+	api("dev.minco:java-transformer:1.10.29")
 
 	val lombok = "org.projectlombok:lombok:1.18.22"
 	compileOnly(lombok)
