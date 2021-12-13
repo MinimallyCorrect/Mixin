@@ -29,7 +29,7 @@ tasks.withType<Test>().configureEach {
 
 configurations.all {
 	resolutionStrategy {
-		force("org.jetbrains:annotations:22.0.0")
+		force("org.jetbrains:annotations:23.0.0")
 		force("org.ow2.asm:asm:9.2")
 	}
 }
