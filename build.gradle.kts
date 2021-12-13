@@ -101,6 +101,9 @@ publishing {
 					username = System.getenv("DEPLOYMENT_REPO_USERNAME")
 					password = deploymentRepoPassword
 				}
+				authentication {
+					create<BasicAuthentication>("basic")
+				}
 			}
 		}
 	}
