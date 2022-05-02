@@ -10,7 +10,7 @@ allprojects {
 	}
 	dependencies {
 		testImplementation "junit:junit:4.13.2"
-		implementation 'com.google.guava:guava:31.0.1-jre'
+		implementation 'com.google.guava:guava:31.1-jre'
 		implementation includes
 	}
 	// java plugin extension added after gradle 4.2.1
@@ -20,7 +20,7 @@ allprojects {
 //	}
 }
 mixin {
-	target("mixins", [dependencies.create('com.google.guava:guava:31.0.1-jre')])
+	target("mixins", [dependencies.create('com.google.guava:guava:31.1-jre')])
 }
 test {
 	testLogging.showStandardStreams = true

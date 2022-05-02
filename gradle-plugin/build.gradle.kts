@@ -10,12 +10,12 @@ plugins {
 apply(from = "groovy.gradle")
 
 dependencies {
-	testImplementation(platform("org.spockframework:spock-bom:2.0-groovy-3.0"))
+	testImplementation(platform("org.spockframework:spock-bom:2.1-groovy-3.0"))
 	testImplementation("org.spockframework:spock-core")
 	testImplementation("org.spockframework:spock-junit4")
 	testImplementation("junit:junit:4.13.2")
 
-	val lombok = "org.projectlombok:lombok:1.18.22"
+	val lombok = "org.projectlombok:lombok:1.18.24"
 	compileOnly(lombok)
 	testCompileOnly(lombok)
 	annotationProcessor(lombok)
@@ -30,6 +30,6 @@ tasks.withType<Test>().configureEach {
 configurations.all {
 	resolutionStrategy {
 		force("org.jetbrains:annotations:23.0.0")
-		force("org.ow2.asm:asm:9.2")
+		force("org.ow2.asm:asm:9.3")
 	}
 }
