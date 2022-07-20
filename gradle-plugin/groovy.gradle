@@ -22,7 +22,7 @@ shadowJar {
 dependencies {
 	//compileOnly 'com.google.guava:guava:25.1-jre' // bundled with gradle
 	implementation parent
-	testImplementation('io.github.classgraph:classgraph:4.8.146')
+	testImplementation('io.github.classgraph:classgraph:4.8.149')
 }
 
 gradlePlugin {

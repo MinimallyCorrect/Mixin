@@ -6,10 +6,10 @@ plugins {
 	id("java-library")
 	id("maven-publish")
 	id("com.github.johnrengelman.shadow") version "7.1.2" apply false
-	id("org.shipkit.shipkit-auto-version") version "1.2.0"
-	id("org.shipkit.shipkit-changelog") version "1.1.15"
-	id("org.shipkit.shipkit-github-release") version "1.1.15"
-	id("dev.minco.gradle.defaults-plugin") version "0.2.59"
+	id("org.shipkit.shipkit-auto-version") version "1.2.1"
+	id("org.shipkit.shipkit-changelog") version "1.2.0"
+	id("org.shipkit.shipkit-github-release") version "1.2.0"
+	id("dev.minco.gradle.defaults-plugin") version "0.2.61"
 }
 
 apply(from = "properties.gradle")
@@ -69,7 +69,7 @@ allprojects {
 dependencies {
 	testImplementation("junit:junit:4.13.2")
 	implementation("me.nallar.whocalled:WhoCalled:1.1")
-	api("dev.minco:java-transformer:1.10.48")
+	api("dev.minco:java-transformer:1.10.49")
 
 	val lombok = "org.projectlombok:lombok:1.18.24"
 	compileOnly(lombok)
