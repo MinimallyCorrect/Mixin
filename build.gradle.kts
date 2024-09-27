@@ -6,7 +6,7 @@ plugins {
 	id("java-library")
 	id("maven-publish")
 	id("com.github.johnrengelman.shadow") version "7.1.2" apply false
-	id("org.shipkit.shipkit-auto-version") version "1.2.1"
+	id("org.shipkit.shipkit-auto-version") version "2.0.11"
 	id("org.shipkit.shipkit-changelog") version "1.2.0"
 	id("org.shipkit.shipkit-github-release") version "1.2.0"
 	id("dev.minco.gradle.defaults-plugin") version "0.2.61"
